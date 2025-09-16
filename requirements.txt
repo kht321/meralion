@@ -1,0 +1,18 @@
+# Core ML stack
+torch==2.6.0
+torchaudio==2.6.0
+transformers==4.48.0
+datasets==3.0.1
+
+# Audio + signal processing
+soundfile==0.13.1
+librosa==0.10.2.post1
+numpy==1.26.4
+
+# Coqui TTS (needs pandas<2.0)
+TTS==0.22.0
+
+# Logging + utilities
+tqdm==4.66.5
+pandas==1.5.3   # ✅ downgrade for TTS
+scipy==1.13.1
