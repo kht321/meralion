@@ -15,6 +15,7 @@ import os
 import re
 import json
 import csv
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -30,7 +31,7 @@ except ImportError:
     torchaudio = None
     print("Warning: torchaudio not installed. Some features may not work.")
 
-from datasets import load_dataset, Audio
+from datasets import load_dataset
 from transformers import AutoProcessor, AutoModelForSpeechSeq2Seq
 
 print("Starting MERaLiON vs Whisper benchmark...")
@@ -92,8 +93,9 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
         return None
 
     print("Loading dataset...")
-    dataset = load_dataset("hf-internal-testing/librispeech_asr_demo", "clean", split="validation")
-    dataset = dataset.cast_column("audio", Audio(sampling_rate=16_000))
+    dataset = load_dataset(
+        "json", data_files="data/synthetic_profanity/metadata.jsonl"
+    )["train"]
     print("Dataset size:", len(dataset))
 
     feature_extractor = getattr(processor, "feature_extractor", None)
@@ -116,21 +118,71 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
 
         first_logged = None
 
+        audio_dir = Path("data/synthetic_profanity")
+
+        has_profanity_flags = batch.get("has_profanity")
+
         for idx, audio_entry in enumerate(batch["audio"]):
             text_entry = batch.get("text", [""] * len(batch["audio"]))[idx]
             reference_text = (text_entry or "").lower()
             references.append(reference_text)
-            ref_has_swear.append(bool(pattern.search(reference_text)))
+            ref_label = bool(pattern.search(reference_text))
+            if has_profanity_flags is not None and idx < len(has_profanity_flags):
+                ref_label = bool(has_profanity_flags[idx]) or ref_label
+            ref_has_swear.append(ref_label)
 
-            if audio_entry is None or audio_entry.get("array") is None:
-                print(f"⚠️ [{name}] sample {idx}: missing audio array")
+            if not audio_entry:
+                print(f"⚠️ [{name}] sample {idx}: missing audio path")
                 predictions.append("")
                 pred_has_swear.append(False)
                 continue
 
-            audio_np = np.asarray(audio_entry["array"], dtype=np.float32)
+            audio_path = audio_dir / audio_entry
+            if not audio_path.exists():
+                print(f"⚠️ [{name}] sample {idx}: audio file not found at {audio_path}")
+                predictions.append("")
+                pred_has_swear.append(False)
+                continue
+
+            try:
+                if sf is not None:
+                    audio_np, sampling_rate = sf.read(str(audio_path))
+                    audio_np = np.asarray(audio_np, dtype=np.float32)
+                elif torchaudio is not None:
+                    waveform, sampling_rate = torchaudio.load(str(audio_path))
+                    audio_np = waveform.squeeze(0).numpy().astype(np.float32)
+                else:
+                    raise RuntimeError("No audio backend available (soundfile or torchaudio)")
+            except Exception as e:
+                print(f"⚠️ [{name}] sample {idx}: failed to load audio ({e})")
+                predictions.append("")
+                pred_has_swear.append(False)
+                continue
+
             if audio_np.ndim > 1:
                 audio_np = np.squeeze(audio_np)
+
+            if sampling_rate != 16_000:
+                try:
+                    if torchaudio is not None:
+                        resampler = torchaudio.transforms.Resample(
+                            orig_freq=sampling_rate, new_freq=16_000
+                        )
+                        audio_tensor = torch.from_numpy(audio_np).unsqueeze(0)
+                        audio_np = resampler(audio_tensor).squeeze(0).numpy().astype(np.float32)
+                    else:
+                        target_length = int(round(len(audio_np) * 16_000 / sampling_rate))
+                        if target_length <= 0:
+                            raise ValueError("Invalid target length after resample")
+                        orig_idx = np.linspace(0, len(audio_np) - 1, num=len(audio_np))
+                        target_idx = np.linspace(0, len(audio_np) - 1, num=target_length)
+                        audio_np = np.interp(target_idx, orig_idx, audio_np).astype(np.float32)
+                    sampling_rate = 16_000
+                except Exception as e:
+                    print(f"⚠️ [{name}] sample {idx}: resample to 16 kHz failed ({e})")
+                    predictions.append("")
+                    pred_has_swear.append(False)
+                    continue
 
             if audio_np.size == 0:
                 print(f"⚠️ [{name}] sample {idx}: empty audio array")
@@ -140,7 +192,7 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
 
             inputs_kwargs = {
                 "audio": audio_np,
-                "sampling_rate": 16_000,
+                "sampling_rate": int(sampling_rate),
                 "return_tensors": "pt",
             }
             if decoder_prompt_text is not None and name.startswith("MERaLiON"):
