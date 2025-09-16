@@ -80,6 +80,7 @@ Interpretation: pipeline ensures **broad coverage** of offensive terms while kee
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -U pip wheel setuptools
+pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
 ```
 
@@ -165,10 +166,7 @@ python mvp.py eval \
 ## Troubleshooting
 
 - **Pylance “missing imports”** → select the `.venv` interpreter in VS Code.  
-- **`torch` not found** → install Apple-Silicon wheel:  
-  ```bash
-  pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
-  ```
+- **`torch` not found / MPS disabled** → reinstall Apple-Silicon wheels: `pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu`.  
 - **Coqui-TTS errors** → ensure Python ≤3.11 (not 3.12).  
 - **Audio silent** → check `soundfile` backend installed (`brew install libsndfile`).  
 
