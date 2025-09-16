@@ -1,182 +1,78 @@
-# MERALION — Synthetic Profanity & Evaluation MVP
+# MERaLiON Profanity Evaluation MVP
 
-Generate, augment, and evaluate **speech datasets with profanity and sensitive content**.  
-The MVP ships:
-- a profanity lexicon (`make_synthetic_profanity.py`),
-- a dataset builder + splitter (`mvp.py`),
-- baseline metrics and evaluation routines,
-- reproducible configs for TTS augmentation.
+This repository contains a minimal pipeline for stress-testing speech-to-text
+models on profanity-heavy audio. The workflow is intentionally small:
 
-**Objective:** reproducibly measure and *stress-test* speech/LLM pipelines against profanity, offensive language, and edge-case content.  
+1. **Generate synthetic clips** – `make_synthetic_profanity.py` injects terms
+   from `profanity_list.txt` into a handful of seed sentences and uses Coqui
+   TTS to synthesise audio (written to `data/synthetic_profanity/`).
+2. **Benchmark models** – `mvp.py` loads the synthetic dataset, resamples each
+   clip to 16 kHz, and evaluates MERaLiON-2-10B and Whisper-small for profanity
+   detection precision/recall. Results are written to `results/`.
 
----
+## Quick start
 
-## What this does
-
-1. **Profanity data synthesis**
-   - Core lexicon: curated list of **profanity, sexual, slurs, and abusive terms**.
-   - TTS augmentation: generates **synthetic speech** with Coqui-TTS.
-   - Output: text + audio dataset (`.jsonl` with `.wav` paths).
-
-2. **Dataset splitting**
-   - `split_dataset()` — generic train/dev/test.
-   - `split_dataset_urs_centric()` — **URS-centric splits** for user-reported speech data.
-   - Outputs structured JSON with metadata for reproducibility.
-
-3. **Evaluation**
-   - Compute baseline profanity coverage, lexical diversity, and contamination checks.
-   - Designed for **speech → transcript → LLM evaluation loops**.
-
----
-
-## Results snapshot (current MVP)
-
-Latest run (**data/synthetic_profanity/metadata.jsonl**, 15 clips, 22.05 kHz → 16 kHz resample):
-
-- **Whisper-small (openai/whisper-small)**  
-  - Precision ≈ **1.00** (8 TP / 0 FP) — never hallucinated profanity.  
-  - Recall ≈ **0.62** (8 TP / 5 FN) — caught eight of thirteen injected profanities, missed five.  
-  - F1 ≈ **0.76** with two clean utterances correctly marked safe.  
-- **MERaLiON-2-10B**  
-  - Currently returns **no predictions** (all metrics 0). Processor still emits `NoneType.ndim` errors on the resampled audio, so debugging is ongoing.
-
-Interpretation: Whisper is already reliable at avoiding false positives but still misses some injected terms—fine-tuning or prompt conditioning should focus on recall. MERaLiON needs additional audio preprocessing/debugging before its numbers are meaningful.
-
----
-
-## Simple summary (for non-technical readers)
-
-- **What is this for?** To check how AI models handle **bad words** (swearing, sexual, hate).  
-- **What did we build?**  
-  - A **list of bad words** (text).  
-  - A tool to **turn them into audio** (using TTS).  
-  - A script to **split datasets** (train/test/dev).  
-- **Does it work?** Yes. You get both **text + audio files** with profanity that can stress-test models.  
-- **Why it matters?** AI speech/LLM systems often fail or behave strangely with profanity. This lets us measure and improve robustness.  
-- **How to use it?**  
-  ```bash
-  python make_synthetic_profanity.py --out ./data/profanity.jsonl
-  python mvp.py split --in ./data/profanity.jsonl --out ./splits/
-  ```
-
----
-
-## Repo layout
-
-```
-.
-├─ mvp.py                       # dataset splitter + evaluator
-├─ make_synthetic_profanity.py  # build text/audio profanity dataset
-├─ requirements.txt             # core dependencies
-├─ requirements-lock.txt        # frozen environment
-├─ data/                        # datasets (JSONL + wav)
-├─ splits/                      # structured splits
-└─ results/                     # evaluation outputs
-```
-
----
-
-## Install
-
-### macOS / Linux
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -U pip wheel setuptools
-pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu
 pip install -r requirements.txt
+
+# Synthesise the toy dataset (15 clips by default)
+python make_synthetic_profanity.py
+
+# Run the benchmark
+python mvp.py
 ```
 
-### Windows (PowerShell)
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-pip install -U pip wheel setuptools
-pip install -r requirements.txt
+You should see result files under `results/`, including
+`Whisper-small_results.jsonl`. Whisper currently achieves ~0.76 F1 on the toy
+set; MERaLiON is still TODO (its processor rejects the audio at present).
+
+## Code walkthrough
+
+### `make_synthetic_profanity.py`
+- Loads seed sentences (or `data/NSC/transcripts.txt` if available).
+- Pulls replacements from `profanity_list.txt` and injects them with an 80 % probability.
+- Synthesises each variant with Coqui TTS (`tts_models/en/ljspeech/fast_pitch`).
+- Writes `.wav` clips plus a `metadata.jsonl` manifest under `data/synthetic_profanity/`.
+
+### `mvp.py`
+- Loads `data/synthetic_profanity/metadata.jsonl` via `datasets.load_dataset`.
+- Reads every `.wav`, resamples to **16 kHz** (Whisper/MERaLiON requirement) using
+  torchaudio when available, otherwise NumPy interpolation.
+- Runs the appropriate `AutoProcessor` and `model.generate`, then flags profanity
+  in references/predictions with the shared regex.
+- Persists row-by-row logs (`*_results.jsonl` / `.csv`) and aggregated metrics
+  (`results/summary.json`).
+
+## Repo structure
+
+```
+├── make_synthetic_profanity.py   # synthetic audio generator
+├── mvp.py                        # evaluation script
+├── profanity_list.txt            # lexicon injected into the audio
+├── data/                         # synthetic outputs live here
+└── results/                      # JSON/CSV logs after benchmarking
 ```
 
----
+## Latest results (15-clip toy set)
 
-## Usage
+| Model           | Precision | Recall | F1   | Notes |
+|-----------------|-----------|--------|------|-------|
+| Whisper-small   | ~1.00     | ~0.62  | ~0.76 | 8/13 profane utterances detected; no hallucinated profanity. |
+| MERaLiON-2-10B  | 0.00      | 0.00   | 0.00 | Processor still returns `NoneType.ndim`; no transcripts produced. |
 
-### 1) Generate synthetic profanity dataset
-```bash
-python make_synthetic_profanity.py \
-  --out ./data/profanity.jsonl \
-  --tts voice_en \
-  --n_samples 500
-```
-Output: `.jsonl` rows with text + `.wav` audio files.
+Interpretation: Whisper is conservative—great at avoiding false positives but
+still misses five injected terms. Improving recall (prompting, augmentation,
+fine-tuning) is the next obvious knob. MERaLiON remains TODO until the
+processor path handles the resampled audio correctly.
 
-### 2) Split into train/dev/test
-```bash
-python mvp.py split \
-  --in ./data/profanity.jsonl \
-  --out ./splits/ \
-  --strategy flat
-```
+## Notes & TODOs
 
-### 3) URS-centric splitting (user speech focus)
-```bash
-python mvp.py split-urs \
-  --in ./data/profanity.jsonl \
-  --out ./splits/urs/
-```
-
-### 4) Run evaluation
-```bash
-python mvp.py eval \
-  --data ./splits/test.jsonl \
-  --metrics coverage diversity balance \
-  --out ./results/eval.json
-```
-
----
-
-## Outputs and formats
-
-### Dataset row
-```json
-{
-  "id": "profanity-001",
-  "text": "fuck you",
-  "audio": "./data/audio/profanity-001.wav",
-  "category": "sexual",
-  "metadata": {"length_sec": 1.2}
-}
-```
-
-### Split file
-```json
-{
-  "train": ["profanity-001", "profanity-002"],
-  "dev": ["profanity-100"],
-  "test": ["profanity-200"]
-}
-```
-
-### Metrics file
-```json
-{
-  "coverage": 0.98,
-  "diversity": 0.74,
-  "balance": {"train": 0.65, "dev": 0.17, "test": 0.18}
-}
-```
-
----
-
-## Troubleshooting
-
-- **Pylance “missing imports”** → select the `.venv` interpreter in VS Code.  
-- **`torch` not found / MPS disabled** → reinstall Apple-Silicon wheels: `pip install torch==2.6.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cpu`.  
-- **Coqui-TTS errors** → ensure Python ≤3.11 (not 3.12).  
-- **Audio silent** → check `soundfile` backend installed (`brew install libsndfile`).  
-
----
-
-## License and attribution
-
-This repository is part of the **AI Evaluation Group Project (MVP)**.  
-Free for internal coursework use.  
-For external use, please request permission.  
+- The dataset is intentionally tiny; scale `make_synthetic_profanity.py` for
+  broader coverage or point `mvp.py` at a real evaluation set.
+- Fix MERaLiON’s preprocessing so it consumes the 16 kHz waveforms; only then
+  will its metrics mean anything.
+- Keep `soundfile`/`torchaudio` installed—without them the loaders return
+  `None` arrays and the processors fail immediately.
