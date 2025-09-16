@@ -31,13 +31,16 @@ The MVP ships:
 
 ## Results snapshot (current MVP)
 
-Example run with **synthetic 500-item dataset** (text + audio):  
+Latest run (**data/synthetic_profanity/metadata.jsonl**, 15 clips, 22.05 kHz → 16 kHz resample):
 
-- **Profanity coverage**: 98% of lexicon terms appear ≥1×.  
-- **Split balance**: train/dev/test respect lexical coverage parity.  
-- **Synthetic speech**: Coqui-TTS (English multispeaker) generates ~100 MB audio in <2 mins (M1).  
+- **Whisper-small (openai/whisper-small)**  
+  - Precision ≈ **1.00** (8 TP / 0 FP) — never hallucinated profanity.  
+  - Recall ≈ **0.62** (8 TP / 5 FN) — caught eight of thirteen injected profanities, missed five.  
+  - F1 ≈ **0.76** with two clean utterances correctly marked safe.  
+- **MERaLiON-2-10B**  
+  - Currently returns **no predictions** (all metrics 0). Processor still emits `NoneType.ndim` errors on the resampled audio, so debugging is ongoing.
 
-Interpretation: pipeline ensures **broad coverage** of offensive terms while keeping splits balanced for evaluation tasks.  
+Interpretation: Whisper is already reliable at avoiding false positives but still misses some injected terms—fine-tuning or prompt conditioning should focus on recall. MERaLiON needs additional audio preprocessing/debugging before its numbers are meaningful.
 
 ---
 
