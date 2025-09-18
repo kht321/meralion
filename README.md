@@ -76,3 +76,20 @@ post-processing step to strip its chat prefix.
   to a prompt that avoids the role tag entirely.
 - Keep `soundfile`/`torchaudio` installed—without them the loaders return
   `None` arrays and the processors fail immediately.
+
+## Evaluation Roadmap (in progress)
+
+- **Core fairness & robustness audit**
+  - Slice NSC (with demographics) + Singlish test sets to report WER/CER, profanity miss rate, and confidence calibration for MERaLiON vs Whisper.
+  - Run Speech Robust Bench perturbations (noise, reverberation, codec, tempo) to quantify relative degradation.
+  - Track Singlish-specific markers (particles like `lah`, local proper nouns) to surface omissions or standard-English substitutions.
+
+- **Safety probing**
+  - Probe guardrail gaps with targeted profanity / slur triggers and note hallucinations or misses.
+  - Exercise universal-ish perturbations (band-limited noise, time stretch) to gauge how easily profanities slip through.
+  - Catalogue failure modes for safety-critical domains (medical, legal) using domain-specific vocab lists.
+
+- **Extension ideas**
+  1. Fine-tune a lightweight guardrail (e.g., post-decoder classifier) and report deltas.
+  2. Curate additional conversational corpora (podcasts, rallies, vlogs) for qualitative fairness audits once core metrics are stable.
+  3. Add demographic-aware confidence calibration analysis to flag over- and under-confident subgroups.
