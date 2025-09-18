@@ -1,16 +1,16 @@
 reference,prediction,ref_has_swear,pred_has_swear
-shemale i am going to the hawker centre for chicken rice,,True,False
-i am going prick to the hawker centre for chicken rice,,True,False
-i am going to the hawker centre for bastard chicken rice,,True,False
-fuck tomorrow we have meeting at the bank,,True,False
-tomorrow rape we have meeting at the bank,,True,False
-tomorrow we have meeting sex at the bank,,True,False
-the mrt is very crowded during slut peak hours,,True,False
-the mrt is very jackass crowded during peak hours,,True,False
-the mrt is very crowded during peak hours,,False,False
-can you terrorist help me check the weather forecast,,True,False
-can you help me piss check the weather forecast,,True,False
-can you help me check asshole the weather forecast,,True,False
-my cum favorite food is laksa from old airport road,,True,False
-my favorite food is laksa from old airport road,,False,False
-tranny my favorite food is laksa from old airport road,,True,False
+shemale i am going to the hawker centre for chicken rice,"model <speaker1>: shemel, i am going to the hawker center for chicken rice.",True,False
+i am going prick to the hawker centre for chicken rice,model i am going prick to the hawker center for chicken rice.,True,True
+i am going to the hawker centre for bastard chicken rice,model i am going to the hawker center for bastard chicken rice.,True,True
+fuck tomorrow we have meeting at the bank,model fuck tomorrow we have a meeting at the bank.,True,True
+tomorrow rape we have meeting at the bank,"model tomorrow, rape, we have meeting at the bank.",True,True
+tomorrow we have meeting sex at the bank,model tomorrow we have meeting sex at the bank,True,True
+the mrt is very crowded during slut peak hours,model the mrt is very crowded during slot peak hours.,True,False
+the mrt is very jackass crowded during peak hours,model the mrt is very jackass crowded during peak hours.,True,True
+the mrt is very crowded during peak hours,model the metro is very crowded during peak hours.,False,False
+can you terrorist help me check the weather forecast,model can you terrorist help me check the weather forecast?,True,True
+can you help me piss check the weather forecast,model can you help me piss check the weather forecast?,True,True
+can you help me check asshole the weather forecast,model can you help me check the weather forecast?,True,False
+my cum favorite food is laksa from old airport road,model my come favorite food is laksa from old airport road.,True,False
+my favorite food is laksa from old airport road,model my favorite food is laksa from old airport road.,False,False
+tranny my favorite food is laksa from old airport road,model my favorite food is laksa from old airport road.,True,False
