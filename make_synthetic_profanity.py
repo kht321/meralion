@@ -10,8 +10,10 @@ import os
 import random
 import json
 from pathlib import Path
-import torch
+from typing import Iterable, Union
+
 import numpy as np
+import torch
 from TTS.api import TTS
 import soundfile as sf
 
@@ -50,6 +52,9 @@ with open("profanity_list.txt") as f:
 output_dir = Path("data/synthetic_profanity")
 os.makedirs(output_dir, exist_ok=True)
 
+# Target sampling rate expected by MERaLiON / Whisper style models
+TARGET_SAMPLE_RATE = 16_000
+
 # GPU if available
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -74,6 +79,26 @@ def inject_profanity(text, prob=0.5):
         words.insert(idx, swear)
     return " ".join(words)
 
+
+def to_mono_float32(wav: Union[np.ndarray, Iterable[float]]) -> np.ndarray:
+    """Convert TTS outputs to mono float32 numpy arrays."""
+    arr = np.asarray(list(wav) if not isinstance(wav, np.ndarray) else wav, dtype=np.float32)
+    if arr.ndim > 1:
+        arr = np.squeeze(arr)
+    return arr.astype(np.float32)
+
+
+def resample_audio(wav: np.ndarray, orig_sr: int, target_sr: int) -> np.ndarray:
+    if orig_sr == target_sr:
+        return wav
+    if orig_sr <= 0:
+        raise ValueError(f"Invalid original sample rate: {orig_sr}")
+    duration = len(wav) / float(orig_sr)
+    target_len = max(int(round(duration * target_sr)), 1)
+    orig_idx = np.linspace(0, len(wav) - 1, num=len(wav))
+    target_idx = np.linspace(0, len(wav) - 1, num=target_len)
+    return np.interp(target_idx, orig_idx, wav).astype(np.float32)
+
 # ------------------------------
 # Main generation loop
 # ------------------------------
@@ -82,11 +107,14 @@ failed = 0
 
 def validate_audio(wav, sr):
     """Check if audio output is valid"""
-    if not isinstance(wav, (np.ndarray, list)):
+    if sr is None or sr <= 0:
+        return False
+    if not isinstance(wav, (np.ndarray, list, tuple)):
         return False
     if len(wav) == 0:
         return False
-    if isinstance(wav, np.ndarray) and np.isnan(wav).any():
+    arr = np.asarray(wav)
+    if np.isnan(arr).any() or np.isinf(arr).any():
         return False
     return True
 
@@ -104,22 +132,35 @@ for i, clean_text in enumerate(input_texts):
                 speaker_wav=None,
                 language=None
             )
-            
+
             # Validate audio output
             if not validate_audio(wav, tts_model.synthesizer.output_sample_rate):
                 print(f"⚠️ Invalid audio generated for text: {augmented_text}")
                 failed += 1
                 continue
 
-            # Apply voice scale variation
-            wav = np.array(wav) * settings["voice_scale"]
-            
-            # Save audio
-            sf.write(out_path, wav, tts_model.synthesizer.output_sample_rate)
+            base_audio = to_mono_float32(wav)
+
+            # Apply voice scale variation and keep amplitude bounded
+            scaled = np.clip(base_audio * settings["voice_scale"], -0.99, 0.99)
+
+            # Resample to target sample rate expected by ASR models
+            resampled = resample_audio(scaled, tts_model.synthesizer.output_sample_rate, TARGET_SAMPLE_RATE)
+
+            # Save audio at 16 kHz
+            sf.write(out_path, resampled, TARGET_SAMPLE_RATE)
+
+            rel_path = str(out_path.relative_to(output_dir))
+            duration = round(len(resampled) / TARGET_SAMPLE_RATE, 3)
 
             # Save metadata (relative path for HF compatibility)
             metadata.append({
-                "audio": str(out_path.relative_to(output_dir)),
+                "audio": {
+                    "path": rel_path,
+                    "sampling_rate": TARGET_SAMPLE_RATE,
+                },
+                "audio_path": rel_path,
+                "duration_seconds": duration,
                 "text": augmented_text,
                 "clean_text": clean_text,
                 "has_profanity": augmented_text != clean_text,

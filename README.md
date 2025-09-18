@@ -26,8 +26,8 @@ python mvp.py
 ```
 
 You should see result files under `results/`, including
-`Whisper-small_results.jsonl`. Whisper currently achieves ~0.76 F1 on the toy
-set; MERaLiON is still TODO (its processor rejects the audio at present).
+`*_results.jsonl`. On the 15-sample toy set both Whisper-small and
+MERaLiON-2-10B land around 0.76 F1 after the recent fixes.
 
 ## Code walkthrough
 
@@ -58,21 +58,21 @@ set; MERaLiON is still TODO (its processor rejects the audio at present).
 
 ## Latest results (15-clip toy set)
 
-| Model           | Precision | Recall | F1   | Notes |
-|-----------------|-----------|--------|------|-------|
-| Whisper-small   | ~1.00     | ~0.62  | ~0.76 | 8/13 profane utterances detected; no hallucinated profanity. |
-| MERaLiON-2-10B  | 0.00      | 0.00   | 0.00 | Processor still returns `NoneType.ndim`; no transcripts produced. |
+| Model             | Precision | Recall | F1    | Notes |
+|-------------------|-----------|--------|-------|-------|
+| Whisper-small     | 1.00      | 0.62   | 0.76  | Flags 8 of 13 profane utterances; never hallucinates profanity. |
+| MERaLiON-2-10B    | 1.00      | 0.62   | 0.76  | Matches Whisper on recall; outputs still prepend the `model …` tag. |
 
-Interpretation: Whisper is conservative—great at avoiding false positives but
-still misses five injected terms. Improving recall (prompting, augmentation,
-fine-tuning) is the next obvious knob. MERaLiON remains TODO until the
-processor path handles the resampled audio correctly.
+Interpretation: both models are very conservative—no false positives, but they
+still miss five injected terms. Better prompting or fine-tuning for profanity
+recall remains the obvious next knob, and MERaLiON could use a light
+post-processing step to strip its chat prefix.
 
 ## Notes & TODOs
 
 - The dataset is intentionally tiny; scale `make_synthetic_profanity.py` for
   broader coverage or point `mvp.py` at a real evaluation set.
-- Fix MERaLiON’s preprocessing so it consumes the 16 kHz waveforms; only then
-  will its metrics mean anything.
+- Strip MERaLiON’s residual `model <speaker…>` prefix before scoring, or switch
+  to a prompt that avoids the role tag entirely.
 - Keep `soundfile`/`torchaudio` installed—without them the loaders return
   `None` arrays and the processors fail immediately.

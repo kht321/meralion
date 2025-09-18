@@ -36,6 +36,14 @@ from transformers import AutoProcessor, AutoModelForSpeechSeq2Seq
 
 print("Starting MERaLiON vs Whisper benchmark...")
 
+# Force verbose diagnostics during investigation.
+DEBUG = True
+
+
+def log_debug(*args, **kwargs):
+    if DEBUG:
+        print("[DEBUG]", *args, **kwargs)
+
 # ------------------------------
 # Pick device
 # ------------------------------
@@ -82,6 +90,45 @@ def load_model(model_id, trust=False):
     print(f"Model loaded: {model.__class__.__name__} with {n_params:,} parameters")
     return processor, model
 
+PROMPT_TEMPLATE = "Instruction: {query} \\nFollow the text instruction based on the following audio: <SpeechHere>"
+TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(query="Please transcribe this speech.")
+
+
+def build_meralion_chat_prompt(tokenizer, prompt_text):
+    """Use MERaLiON chat template so <SpeechHere> placeholders are expanded properly."""
+    conversation = [[{"role": "user", "content": prompt_text}]]
+    try:
+        return tokenizer.apply_chat_template(
+            conversation=conversation,
+            tokenize=False,
+            add_generation_prompt=True,
+        )
+    except Exception:
+        return prompt_text
+
+
+def clean_meralion_transcript(text):
+    if not text:
+        return text
+
+    lowered = text.lower()
+    marker = "<speechhere>"
+    last_idx = lowered.rfind(marker)
+    if last_idx != -1:
+        text = text[last_idx + len(marker):]
+
+    text = re.sub(r"^model\s*(?:<[^>]+>)?\s*:?\s*", "", text, flags=re.IGNORECASE)
+    if text.lower().startswith("model "):
+        text = text.split(" ", 1)[1] if " " in text else ""
+    elif text.lower().startswith("model:"):
+        text = text[6:]
+    text = re.sub(r"instruction:\s*please transcribe this speech\.\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"follow the text instruction based on the following audio:\s*", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"<speechhere>", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
+
+
 # ------------------------------
 # Function: transcribe + evaluate
 # ------------------------------
@@ -97,9 +144,19 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
         "json", data_files="data/synthetic_profanity/metadata.jsonl"
     )["train"]
     print("Dataset size:", len(dataset))
+    log_debug("Dataset features:", dataset.features)
+    if DEBUG and len(dataset) > 0:
+        sample_preview = dataset[0]
+        log_debug("Sample[0] keys:", sorted(sample_preview.keys()))
+        log_debug("Sample[0] audio field type:", type(sample_preview.get("audio")))
 
     feature_extractor = getattr(processor, "feature_extractor", None)
     tokenizer = getattr(processor, "tokenizer", None)
+
+    meralion_prompt_text = None
+    if name.startswith("MERaLiON") and tokenizer is not None:
+        meralion_prompt_text = build_meralion_chat_prompt(tokenizer, TRANSCRIBE_PROMPT)
+        log_debug("MERaLiON chat prompt prepared:", meralion_prompt_text)
 
     whisper_like = False
     padding_mode = None
@@ -122,6 +179,7 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
 
         has_profanity_flags = batch.get("has_profanity")
 
+        log_debug("Batch size:", len(batch["audio"]))
         for idx, audio_entry in enumerate(batch["audio"]):
             text_entry = batch.get("text", [""] * len(batch["audio"]))[idx]
             reference_text = (text_entry or "").lower()
@@ -131,13 +189,27 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
                 ref_label = bool(has_profanity_flags[idx]) or ref_label
             ref_has_swear.append(ref_label)
 
-            if not audio_entry:
+            log_debug(f"Processing sample {idx}")
+            log_debug("Raw audio entry:", audio_entry)
+
+            audio_rel_path = None
+            if isinstance(audio_entry, dict):
+                audio_rel_path = audio_entry.get("path") or audio_entry.get("audio_path")
+            elif isinstance(audio_entry, str):
+                audio_rel_path = audio_entry
+
+            if audio_rel_path is None:
+                fallback = batch.get("audio_path", [None] * len(batch["audio"]))
+                if isinstance(fallback, list) and idx < len(fallback):
+                    audio_rel_path = fallback[idx]
+
+            if not audio_rel_path:
                 print(f"⚠️ [{name}] sample {idx}: missing audio path")
                 predictions.append("")
                 pred_has_swear.append(False)
                 continue
 
-            audio_path = audio_dir / audio_entry
+            audio_path = audio_dir / audio_rel_path
             if not audio_path.exists():
                 print(f"⚠️ [{name}] sample {idx}: audio file not found at {audio_path}")
                 predictions.append("")
@@ -145,6 +217,7 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
                 continue
 
             try:
+                log_debug(f"Loading audio from {audio_path}")
                 if sf is not None:
                     audio_np, sampling_rate = sf.read(str(audio_path))
                     audio_np = np.asarray(audio_np, dtype=np.float32)
@@ -153,6 +226,8 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
                     audio_np = waveform.squeeze(0).numpy().astype(np.float32)
                 else:
                     raise RuntimeError("No audio backend available (soundfile or torchaudio)")
+                log_debug("Loaded audio shape:", audio_np.shape if hasattr(audio_np, "shape") else len(audio_np))
+                log_debug("Original sampling rate:", sampling_rate)
             except Exception as e:
                 print(f"⚠️ [{name}] sample {idx}: failed to load audio ({e})")
                 predictions.append("")
@@ -164,6 +239,7 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
 
             if sampling_rate != 16_000:
                 try:
+                    log_debug("Resampling from", sampling_rate, "to 16000")
                     if torchaudio is not None:
                         resampler = torchaudio.transforms.Resample(
                             orig_freq=sampling_rate, new_freq=16_000
@@ -178,6 +254,7 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
                         target_idx = np.linspace(0, len(audio_np) - 1, num=target_length)
                         audio_np = np.interp(target_idx, orig_idx, audio_np).astype(np.float32)
                     sampling_rate = 16_000
+                    log_debug("Resample successful; new length:", audio_np.shape if hasattr(audio_np, "shape") else len(audio_np))
                 except Exception as e:
                     print(f"⚠️ [{name}] sample {idx}: resample to 16 kHz failed ({e})")
                     predictions.append("")
@@ -190,16 +267,28 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
                 pred_has_swear.append(False)
                 continue
 
-            inputs_kwargs = {
-                "audio": audio_np,
-                "sampling_rate": int(sampling_rate),
-                "return_tensors": "pt",
-            }
-            if decoder_prompt_text is not None and name.startswith("MERaLiON"):
-                inputs_kwargs["text"] = decoder_prompt_text
+            if name.startswith("MERaLiON"):
+                prompt_source = meralion_prompt_text or TRANSCRIBE_PROMPT
+                if isinstance(prompt_source, list) and prompt_source:
+                    prompt_text = prompt_source[0]
+                else:
+                    prompt_text = prompt_source
+                inputs_kwargs = {
+                    "audios": audio_np,
+                    "sampling_rate": int(sampling_rate),
+                    "text": prompt_text,
+                }
+            else:
+                inputs_kwargs = {
+                    "audio": audio_np,
+                    "sampling_rate": int(sampling_rate),
+                    "return_tensors": "pt",
+                }
+            log_debug("Inputs kwargs keys:", sorted(inputs_kwargs.keys()))
 
             try:
                 encoded = processor(**inputs_kwargs)
+                log_debug("Processor output keys:", sorted(encoded.keys()) if hasattr(encoded, "keys") else encoded.__class__)
             except Exception as e:
                 print(f"⚠️ [{name}] sample {idx}: processor failure: {e}")
                 predictions.append("")
@@ -233,7 +322,11 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
                         value = value.to(device=device)
                     prepared_inputs[key] = value
 
-            if name.startswith("MERaLiON") and decoder_prompt_text is not None and "decoder_input_ids" not in prepared_inputs:
+            if (
+                not name.startswith("MERaLiON")
+                and decoder_prompt_text is not None
+                and "decoder_input_ids" not in prepared_inputs
+            ):
                 try:
                     prompt_ids = processor.tokenizer(decoder_prompt_text, return_tensors="pt").input_ids
                     prepared_inputs["decoder_input_ids"] = prompt_ids.to(device=device, dtype=torch.long)
@@ -250,10 +343,16 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
                     pass
 
             try:
+                log_debug("Calling model.generate with keys:", list(prepared_inputs.keys()))
                 with torch.no_grad():
                     generated_ids = model.generate(**prepared_inputs, **generation_kwargs)
+                log_debug("Generation successful; output shape:", generated_ids.shape)
                 transcripts = processor.batch_decode(generated_ids, skip_special_tokens=True)
-                normalized = (transcripts[0] if transcripts else "").lower()
+                raw_text = transcripts[0] if transcripts else ""
+                if name.startswith("MERaLiON"):
+                    raw_text = clean_meralion_transcript(raw_text)
+                normalized = raw_text.lower()
+                log_debug("Decoded transcript:", normalized)
             except Exception as e:
                 print(f"⚠️ [{name}] sample {idx}: generation failure: {e}")
                 predictions.append("")
@@ -323,7 +422,12 @@ def benchmark_model(name, model_id, trust=False, decoder_prompt_text=None):
 os.makedirs("results", exist_ok=True)
 
 benchmarks = []
-benchmarks.append(benchmark_model("MERaLiON-2-10B", "MERaLiON/MERaLiON-2-10B", trust=True, decoder_prompt_text=""))
+benchmarks.append(benchmark_model(
+    "MERaLiON-2-10B",
+    "MERaLiON/MERaLiON-2-10B",
+    trust=True,
+    decoder_prompt_text=TRANSCRIBE_PROMPT,
+))
 benchmarks.append(benchmark_model("Whisper-small", "openai/whisper-small", trust=False))
 
 # ------------------------------
