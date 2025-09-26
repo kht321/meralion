@@ -1,0 +1,21 @@
+# pyproject.toml
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "asr-eval"
+version = "0.1.0"
+description = "ASR evaluation toolkit: loaders for MERaLiON and Whisper + simple CLI"
+authors = [{name = "Kevin"}]
+requires-python = ">=3.9"
+dependencies = [
+  "torch",
+  "transformers>=4.41.0",
+  "datasets",
+  "numpy",
+  "soundfile",
+]
+
+[project.scripts]
+asr-eval = "asr_eval.cli:main"
