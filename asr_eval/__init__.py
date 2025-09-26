@@ -6,6 +6,7 @@ __all__ = [
     "audio",
     "cli",
     "corruption",
+    "datasets",
     "device",
     "eval",
     "metrics",
