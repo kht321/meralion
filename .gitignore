@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# macOS Finder cruft
+.DS_Store
+
+# Large local datasets
+data/NSC/
+!data/manifests/

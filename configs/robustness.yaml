@@ -1,6 +1,6 @@
-# Seeded robustness sweep with bootstrap confidence intervals.
-dataset_manifest: "data/synthetic_profanity/metadata.jsonl"
-dataset_audio_dir: "data/synthetic_profanity"
+# Seeded robustness sweep on NSC part 1 with bootstrap confidence intervals.
+dataset_manifest: "data/manifests/nsc_part1.jsonl"
+dataset_audio_dir: "data/NSC"
 text_field: "text"
 results_dir: "results/robustness"
 seeds: [13, 17, 23]
