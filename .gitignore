@@ -212,3 +212,6 @@ __marimo__/
 # Large local datasets
 data/NSC/
 !data/manifests/
+
+# Experiment artefacts
+results/
