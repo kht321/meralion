@@ -2,4 +2,12 @@
 
 from __future__ import annotations
 
-__all__ = ["audio", "cli", "device", "models"]
+__all__ = [
+    "audio",
+    "cli",
+    "corruption",
+    "device",
+    "eval",
+    "metrics",
+    "models",
+]
