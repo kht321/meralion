@@ -1,0 +1,21 @@
+# Seeded robustness sweep with bootstrap confidence intervals.
+dataset_manifest: "data/synthetic_profanity/metadata.jsonl"
+dataset_audio_dir: "data/synthetic_profanity"
+text_field: "text"
+results_dir: "results/robustness"
+seeds: [13, 17, 23]
+models:
+  - meralion-2-10b
+  - whisper-small
+
+corruptions:
+  none: [0]
+  noise_snr_db: [30, 20, 10]
+  speed: [0.9, 0.8, 1.1]
+  pitch_semitones: [-2, 2, 4]
+  reverb_decay: [0.2, 0.5, 0.8]
+  clipping_ratio: [0.98, 0.9, 0.8]
+
+bootstrap:
+  n_samples: 1000
+  alpha: 0.05

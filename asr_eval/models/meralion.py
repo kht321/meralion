@@ -69,6 +69,8 @@ class MERaLiON(ASRModel):
         if tokenizer is not None:
             self._prompt = _build_chat_prompt(tokenizer, TRANSCRIBE_PROMPT)
 
+        self._model_dtype = next(self.model.parameters()).dtype
+
     def transcribe(self, wav, sr: int) -> str:
         inputs = {"audios": wav, "sampling_rate": int(sr)}
         if self._prompt:
@@ -83,7 +85,10 @@ class MERaLiON(ASRModel):
             if value is None:
                 continue
             if hasattr(value, "to"):
-                value = value.to(device=str(self.device))
+                to_kwargs = {"device": str(self.device)}
+                if hasattr(value, "dtype") and value.dtype.is_floating_point:
+                    to_kwargs["dtype"] = self._model_dtype
+                value = value.to(**to_kwargs)
             prepared[key] = value
 
         with torch.no_grad():
