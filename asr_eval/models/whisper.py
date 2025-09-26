@@ -22,6 +22,8 @@ class Whisper(ASRModel):
         if str(device) == "mps":
             self.model = self.model.to(dtype=torch.float16)
 
+        self._model_dtype = next(self.model.parameters()).dtype
+
         self._forced_ids: Optional[list[list[int]]] = None
         get_prompt_ids = getattr(self.processor, "get_decoder_prompt_ids", None)
         if callable(get_prompt_ids):
@@ -36,17 +38,21 @@ class Whisper(ASRModel):
             sampling_rate=int(sr),
             return_tensors="pt",
         )
-        features = {
-            key: (value.to(device=str(self.device)) if hasattr(value, "to") else value)
-            for key, value in features.items()
-        }
+        prepared = {}
+        for key, value in features.items():
+            if hasattr(value, "to"):
+                to_kwargs = {"device": str(self.device)}
+                if hasattr(value, "dtype") and value.dtype.is_floating_point:
+                    to_kwargs["dtype"] = self._model_dtype
+                value = value.to(**to_kwargs)
+            prepared[key] = value
 
         generation_kwargs = {"max_new_tokens": 256}
         if self._forced_ids is not None:
             generation_kwargs["forced_decoder_ids"] = self._forced_ids
 
         with torch.no_grad():
-            generated = self.model.generate(**features, **generation_kwargs)
+            generated = self.model.generate(**prepared, **generation_kwargs)
 
         decoded = self.processor.batch_decode(generated, skip_special_tokens=True)
         return (decoded[0] if decoded else "").lower()
