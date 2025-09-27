@@ -145,6 +145,12 @@ configuration in `configs/robustness.yaml`. The pipeline:
 6. Optionally emits JSONL logs of every utterance-level transcript when
    `--emit_jsonl` is passed (enabled in the Makefile target).
 
+> **Workload overview:** The default manifest (`data/manifests/nsc_part1.jsonl`)
+> contains 682 utterances. Combined with the default configuration (2 models × 3
+> seeds × 6 corruption settings—clean + five perturbations), the job produces
+> 24 552 individual transcriptions before aggregating metrics. Adjusting any of
+> these knobs scales runtime roughly linearly.
+
 #### Adjusting the robustness config
 
 `configs/robustness.yaml` controls the experiment:
