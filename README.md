@@ -157,6 +157,44 @@ configuration in `configs/robustness.yaml`. The pipeline:
   MRT cabin impulse responses) to address realism risks.
 - `bootstrap`: number of samples and confidence level for the aggregated table.
 
+---
+
+## Methodology & evaluation strategy
+
+### Robustness (current focus)
+
+- **Rationale:** Real deployments rarely enjoy clean studio audio. We mirror the
+  corruption taxonomy from Speech Robust Bench (noise, speed, pitch,
+  reverberation, clipping) and tune severities to local soundscapes such as MRT
+  cabins or HDB living rooms. Deterministic seeds let us measure *relative*
+  degradation against the cached clean baseline.
+- **Evaluation:** For each (model, corruption, severity, seed) tuple we record
+  WER, CER, and deltas versus clean audio, then bootstrap across seeds for 95 %
+  confidence intervals. Interaction tests (noise×reverb, noise×speed) are on the
+  roadmap to address the “ignoring interaction effects” risk.
+
+### Fairness (in flight)
+
+- **Rationale:** Apparent demographic gaps can be confounded by microphone
+  choice or ambient noise. By joining NSC speaker metadata and building a
+  lockbox test set of public social clips, we can separate demographic effects
+  from acoustic ones.
+- **Planned evaluation:**
+  - Construct balanced manifests for gender, ethnicity, age, and device categories.
+  - Report per-group WER/CER medians and tail percentiles (P90/P95) alongside
+    max–min gaps.
+  - Use Welch’s t-tests or ANOVA with Benjamini–Hochberg FDR control, and extend
+    to calibration metrics (ECE/Brier) once token confidences are available.
+
+### Backdoor vulnerability (stretch)
+
+- **Rationale:** Small, hard-to-hear triggers can secretly flip transcripts. We
+  will explore parameter-efficient fine-tuning (LoRA/PEFT) on MERaLiON-2-3B with
+  synthetic triggers while tracking clean accuracy.
+- **Planned evaluation:** Measure attack success rate (BD-ASR%) vs. clean WER
+  each epoch, run multiple detectors (spectral signatures + activation
+  clustering) to avoid overclaiming, and audit audibility across devices/codecs.
+
 ### 4. Fairness analysis (coming soon)
 
 The fairness plan builds on the same manifests by joining metadata from the
@@ -248,6 +286,22 @@ To be updated once the first full robustness and fairness sweeps are complete.
 
 ---
 
+## Expected results (pre-analysis hypotheses)
+
+- **Robustness:** We expect MERaLiON and Whisper to tolerate light noise and
+  reverberation with ≤1 % absolute WER drift, but anticipate steeper degradation
+  for compounded distortions (noise + reverb) and aggressive clipping—especially
+  on softer or higher-pitched voices.
+- **Fairness:** Prior ASR studies suggest higher WER for female speakers and
+  code-switched speech. Unless device/SNR distributions are perfectly balanced
+  we anticipate similar gaps; adjusted analyses will help identify whether the
+  cause is demographic, device, or environment.
+- **Backdoor:** Clean-label, low-energy triggers are likely to succeed during
+  PEFT without strong regularisation, underscoring the need for guardrails once
+  baseline robustness/fairness numbers are in place.
+
+---
+
 ## References
 
 - Ardila et al. (2019). *Common Voice: a Massively-Multilingual Speech Corpus.*
@@ -257,4 +311,3 @@ To be updated once the first full robustness and fairness sweeps are complete.
 - Rauh et al. (2024). *Gaps in the Safety Evaluation of Generative AI.*
 - Shah et al. (2024). *Speech Robust Bench: A robustness benchmark for speech
   recognition.*
-
