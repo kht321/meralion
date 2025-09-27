@@ -73,6 +73,8 @@ device) in Excel spreadsheets.
   - `text`: transcript from the official `.TXT` files (normalised lowercase)
   - `speaker`, `session`: speaker/session identifiers from the directory tree
   - `part`: flag identifying the corpus slice (e.g., `part1_local_accents`)
+  - Each manifest entry corresponds to a short clip (2.1 s – 9.4 s, mean 4.8 s);
+    the default Part 1 manifest contains 682 utterances.
 
 Future manifests will extend this to other NSC parts and join speaker
 metadata (gender, ethnicity, device, etc.) so fairness metrics can be computed
@@ -286,9 +288,41 @@ backdoor work.
 
 ---
 
-## Results (placeholder)
+## Results (NSC Part 1 robustness sweep)
 
-To be updated once the first full robustness and fairness sweeps are complete.
+Latest run: MERaLiON-2-10B and Whisper-small evaluated on 682 utterances from
+NSC Part 1 under clean audio and five corruption types (noise, speed, pitch,
+reverb, clipping) across three seeds per setting. Key aggregates from
+`results/robustness/summary.csv`:
+
+| Model            | Clean WER | Clean CER | Worst ΔWER | Worst corruption (WER) | Observations |
+|------------------|-----------|-----------|------------|------------------------|--------------|
+| MERaLiON-2-10B   | 26.1 %    | 22.1 %    | +6.2 pp    | Noise SNR 10 dB (32.3 %) | Mild speed/pitch shifts give a small boost (≈–1 pp); clipping and moderate reverb change <1 pp. |
+| Whisper-small    | 17.9 %    | 6.1 %     | +77.6 pp   | Reverb decay 0.8 (95.5 %) | Strong reverb severely degrades performance; light noise (30 dB) adds ~0.4 pp, while 10 dB noise adds 18.8 pp. |
+
+### Insights
+
+- **Baseline accuracy:** Whisper-small outperforms MERaLiON-2-10B on clean NSC
+  Part 1 (WER 17.9 % vs. 26.1 %), driven by a substantially lower character error
+  rate (6.1 % vs. 22.1 %).
+- **Noise robustness:** Both models handle 30 dB noise well (+0.9 pp WER or less).
+  MERaLiON tolerates 20 dB with only a +1.1 pp hit, whereas Whisper’s WER climbs
+  +2.8 pp. At a challenging 10 dB SNR, MERaLiON’s WER rises to 32.3 % (+6.2 pp)
+  while Whisper jumps to 36.7 % (+18.8 pp), indicating MERaLiON’s relative noise
+  resilience despite its higher clean error rate.
+- **Reverberation sensitivity:** Whisper’s performance collapses under heavy
+  reverberation (WER 95.5 %, CER 75 %), while MERaLiON exhibits only modest drift
+  (+1.2 pp at decay 0.8). This suggests Whisper’s decoder is particularly brittle
+  to long-tail room responses and should be a priority for augmentation.
+- **Tempo/pitch:** Small speed reductions (0.8×) or pitch shifts (±2 semitones)
+  slightly *improve* MERaLiON’s scores (≈–1 pp), hinting at beneficial regularity
+  in the perturbations. Whisper remains largely unchanged across these settings.
+- **Amplitude clipping:** Hard clipping at the tested ratios has negligible
+  impact on either model, implying that peak amplitudes in NSC Part 1 rarely hit
+  those thresholds.
+
+Full per-seed metrics and bootstrap confidence intervals are stored in
+`results/robustness/per_seed.csv` and `results/robustness/summary.csv`.
 
 ---
 
