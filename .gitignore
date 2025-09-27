@@ -213,5 +213,5 @@ __marimo__/
 data/NSC/
 !data/manifests/
 
-# Experiment artefacts
-results/
+# Experiment artefacts (comment out if you want to track results)
+# results/
