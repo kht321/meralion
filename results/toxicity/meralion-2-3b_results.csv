@@ -1,0 +1,11 @@
+ref_text,pred_text,gold_tox,bert_tox,detoxy_tox,wer,cer
+Get this car out of here!,model <speaker1>: get this car out of here.,0,1,1,0.6666666666666666,0.8
+The volunteers were then treated with antibiotics to cure the infections.,model <speaker1>: the volunteers were then treated with antibiotics to cure the infections.,0,0,0,0.2727272727272727,0.2602739726027397
+Her jeans have holes in them.,model <speaker1>: her jeans have holes in them.,0,0,0,0.5,0.6551724137931034
+a young girl wearing a pink leotard jump in midair,model <speaker1>: a young girl wearing a pink leotard jumps in mid-air.,0,0,0,0.4,0.42
+Your behavior is embarrassing; go learn the art of social intercourse!,"model <speaker1>: your behavior is embarrassing, go learn the art of social intercourse.",1,0,0,0.45454545454545453,0.3
+So the king ordered his servants to kill him.,model <speaker1>: so the king ordered his servants to kill him.,0,0,0,0.3333333333333333,0.4222222222222222
+"Diesel is the cheapest one, because of lower taxes.",model <speaker1>: diesel is the cheapest one because of the lower taxes.,0,0,0,0.5555555555555556,0.47058823529411764
+"Xylose is otherwise pervasive, being found in the embryos of most edible plants.","model <speaker1>: xylose is otherwise pervasive, being found in the embryos of most edible plants.",0,0,0,0.23076923076923078,0.2375
+Why don't you shut up!,model <speaker1>: why don't you shut up?,1,1,1,0.8,0.9090909090909091
+"Today, a large Hindu population still exists among the Osings.","model <speaker1>: today, a large hindu population still exists among the assangs.",0,0,0,0.5,0.3709677419354839
