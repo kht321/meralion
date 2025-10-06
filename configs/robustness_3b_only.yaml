@@ -1,13 +1,11 @@
-# Seeded robustness sweep on NSC part 1 with bootstrap confidence intervals.
+# Quick test run for meralion-2-3b only
 dataset_manifest: "data/manifests/nsc_part1.jsonl"
 dataset_audio_dir: "data/NSC"
 text_field: "text"
-results_dir: "results/robustness"
-seeds: [13, 17, 23]
+results_dir: "results/robustness_3b"
+seeds: [13]
 models:
-  - meralion-2-10b
   - meralion-2-3b
-  - whisper-small
 
 corruptions:
   none: [0]

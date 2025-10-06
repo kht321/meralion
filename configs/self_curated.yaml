@@ -1,8 +1,8 @@
-# Seeded robustness sweep on NSC part 1 with bootstrap confidence intervals.
-dataset_manifest: "data/manifests/nsc_part1.jsonl"
-dataset_audio_dir: "data/NSC"
+# Self-curated dataset robustness evaluation (test1-test2 with ground truth)
+dataset_manifest: "data/manifests/self_curated.jsonl"
+dataset_audio_dir: "data/robustness/audio"
 text_field: "text"
-results_dir: "results/robustness"
+results_dir: "results/self_curated"
 seeds: [13, 17, 23]
 models:
   - meralion-2-10b

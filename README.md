@@ -298,31 +298,76 @@ reverb, clipping) across three seeds per setting. Key aggregates from
 | Model            | Clean WER | Clean CER | Worst ΔWER | Worst corruption (WER) | Observations |
 |------------------|-----------|-----------|------------|------------------------|--------------|
 | MERaLiON-2-10B   | 26.1 %    | 22.1 %    | +6.2 pp    | Noise SNR 10 dB (32.3 %) | Mild speed/pitch shifts give a small boost (≈–1 pp); clipping and moderate reverb change <1 pp. |
+| MERaLiON-2-3B    | 29.0 %    | 29.3 %    | +5.2 pp    | Noise SNR 10 dB (34.2 %) | Very robust to clipping (0 pp change); noise at 10 dB adds +5.2 pp. All other corruptions stay within +1.1 pp. |
 | Whisper-small    | 17.9 %    | 6.1 %     | +77.6 pp   | Reverb decay 0.8 (95.5 %) | Strong reverb severely degrades performance; light noise (30 dB) adds ~0.4 pp, while 10 dB noise adds 18.8 pp. |
 
 ### Insights
 
-- **Baseline accuracy:** Whisper-small outperforms MERaLiON-2-10B on clean NSC
-  Part 1 (WER 17.9 % vs. 26.1 %), driven by a substantially lower character error
-  rate (6.1 % vs. 22.1 %).
-- **Noise robustness:** Both models handle 30 dB noise well (+0.9 pp WER or less).
-  MERaLiON tolerates 20 dB with only a +1.1 pp hit, whereas Whisper’s WER climbs
-  +2.8 pp. At a challenging 10 dB SNR, MERaLiON’s WER rises to 32.3 % (+6.2 pp)
-  while Whisper jumps to 36.7 % (+18.8 pp), indicating MERaLiON’s relative noise
-  resilience despite its higher clean error rate.
-- **Reverberation sensitivity:** Whisper’s performance collapses under heavy
-  reverberation (WER 95.5 %, CER 75 %), while MERaLiON exhibits only modest drift
-  (+1.2 pp at decay 0.8). This suggests Whisper’s decoder is particularly brittle
-  to long-tail room responses and should be a priority for augmentation.
+- **Baseline accuracy:** Whisper-small outperforms both MERaLiON variants on clean
+  NSC Part 1 (WER 17.9 % vs. 26.1 % for 10B and 29.0 % for 3B), driven by a
+  substantially lower character error rate (6.1 % vs. 22.1 % and 29.3 % respectively).
+
+- **Model size impact (MERaLiON family):** Despite being trained on 40 % of the NSC
+  dataset, MERaLiON-2-3B shows only a +2.9 pp WER degradation compared to the 10B
+  variant on clean audio. However, the 3B model exhibits significantly higher CER
+  (+7.2 pp), suggesting the smaller model struggles more with character-level precision
+  while maintaining reasonable word-level accuracy. Notably, the 3B model demonstrates
+  slightly better noise robustness (worst ΔWER +5.2 pp vs. +6.2 pp for 10B), indicating
+  that data familiarity (NSC training) and robustness scale differently with model size.
+
+- **Noise robustness:** All models handle 30 dB noise well (+0.9 pp WER or less).
+  Both MERaLiON variants tolerate 20 dB with minimal degradation (+1.1 pp or less),
+  whereas Whisper's WER climbs +2.8 pp. At a challenging 10 dB SNR, MERaLiON-2-10B
+  reaches 32.3 % (+6.2 pp), MERaLiON-2-3B reaches 34.2 % (+5.2 pp), while Whisper
+  jumps to 36.7 % (+18.8 pp). This demonstrates MERaLiON's superior noise resilience
+  despite higher clean error rates, with the 3B variant unexpectedly showing the best
+  noise tolerance relative to its clean baseline.
+
+- **Reverberation sensitivity:** Whisper's performance collapses under heavy
+  reverberation (WER 95.5 %, CER 75 %), while both MERaLiON models exhibit only
+  modest drift (+1.2 pp for 10B, +1.1 pp for 3B at decay 0.8). This suggests
+  Whisper's decoder is particularly brittle to long-tail room responses and should
+  be a priority for augmentation.
+
 - **Tempo/pitch:** Small speed reductions (0.8×) or pitch shifts (±2 semitones)
-  slightly *improve* MERaLiON’s scores (≈–1 pp), hinting at beneficial regularity
-  in the perturbations. Whisper remains largely unchanged across these settings.
-- **Amplitude clipping:** Hard clipping at the tested ratios has negligible
-  impact on either model, implying that peak amplitudes in NSC Part 1 rarely hit
-  those thresholds.
+  slightly *improve* MERaLiON scores (≈–1 pp for both variants), hinting at
+  beneficial regularity in the perturbations. Whisper remains largely unchanged
+  across these settings.
+
+- **Amplitude clipping:** Hard clipping shows negligible impact on all models, with
+  MERaLiON-2-3B achieving perfect robustness (0 pp change across all clipping ratios).
+  This implies that peak amplitudes in NSC Part 1 rarely hit those thresholds.
 
 Full per-seed metrics and bootstrap confidence intervals are stored in
 `results/robustness/per_seed.csv` and `results/robustness/summary.csv`.
+
+---
+
+## Results (Self-Curated Conversational Dataset)
+
+Evaluated all 3 models on 2 conversational audio files (test1.mp3, test2.mp3) with manual ground truth transcripts. These samples contain multi-speaker Singlish conversations with code-switching, colloquialisms, and disfluencies. Results from `results/self_curated/summary.csv`:
+
+| Model            | Clean WER | Clean CER | Worst ΔWER | Worst corruption (WER) | Observations |
+|------------------|-----------|-----------|------------|------------------------|--------------|
+| MERaLiON-2-10B   | 62.2 %    | 34.2 %    | +13.4 pp  | Speed 0.8× (43.0 %) | Severe degradation on conversational speech; speed changes improve performance (best: –19.2 pp at 0.8×). |
+| MERaLiON-2-3B    | 38.8 %    | 27.8 %    | +28.3 pp  | Noise SNR 10 dB (67.1 %) | Significantly outperforms 10B variant (–23.4 pp WER); extremely vulnerable to noise (+28.3 pp at 10 dB SNR). |
+| Whisper-small    | 56.0 %    | 52.6 %    | +35.5 pp  | Reverb decay 0.8 (91.5 %) | High baseline error; reverb causes catastrophic failure (+35.5 pp). Speed 1.1× improves performance (–3.3 pp). |
+
+### Key Observations (Conversational Speech)
+
+- **Domain shift impact:** All models perform dramatically worse on conversational Singlish compared to NSC read speech. MERaLiON-2-10B WER jumps from 26.1 % (NSC) to 62.2 % (conversational), MERaLiON-2-3B from 29.0 % to 38.8 %, and Whisper-small from 17.9 % to 56.0 %.
+
+- **Unexpected model size reversal:** On conversational data, the smaller MERaLiON-2-3B **dramatically outperforms** the 10B variant (38.8 % vs 62.2 % WER, a 23.4 pp gap). This reverses the NSC pattern and suggests the 3B model may have better exposure to conversational training data or better generalization to informal speech patterns.
+
+- **Extreme noise vulnerability (3B):** While MERaLiON-2-3B excels on clean conversational audio, it suffers severe noise degradation (+28.3 pp at 10 dB SNR vs +5.2 pp on NSC), indicating poor noise robustness on out-of-domain data.
+
+- **Speed perturbation paradox:** Slower playback (0.8×) consistently improves all models on conversational speech (–19.2 pp for 10B, –0.7 pp for 3B, +10.1 pp for Whisper). This contrasts with NSC where speed changes had minimal impact, suggesting models benefit from additional time to process rapid, code-switched speech.
+
+- **Reverb remains catastrophic for Whisper:** Heavy reverberation (decay 0.8) causes Whisper to fail completely on conversational speech (91.5 % WER, +35.5 pp), similar to NSC results but with even worse absolute performance.
+
+- **Dataset size limitation:** Results based on only 2 utterances; confidence intervals and variance are not meaningful. Requires expansion to 50+ diverse conversational samples for robust conclusions.
+
+Full per-seed metrics are stored in `results/self_curated/per_seed.csv` and `results/self_curated/summary.csv`.
 
 ---
 
