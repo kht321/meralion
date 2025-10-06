@@ -23,6 +23,7 @@ from ..models.whisper import Whisper
 
 ALIASES = {
     "meralion-2-10b": "MERaLiON/MERaLiON-2-10B",
+    "meralion-2-3b": "MERaLiON/MERaLiON-2-3B",
     "whisper-small": "openai/whisper-small",
 }
 
@@ -31,6 +32,8 @@ def build_model(name: str, device: Device):
     canonical = name.lower().strip()
     if canonical in {"meralion", "meralion-2-10b"}:
         return MERaLiON(ALIASES["meralion-2-10b"], device)
+    if canonical == "meralion-2-3b":
+        return MERaLiON(ALIASES["meralion-2-3b"], device)
     if canonical in {"whisper", "whisper-small"}:
         return Whisper(ALIASES["whisper-small"], device)
     if "meralion" in canonical:
