@@ -371,6 +371,27 @@ Full per-seed metrics are stored in `results/self_curated/per_seed.csv` and `res
 
 ---
 
+## Results (Toxicity evaluation)
+
+All three models were evaluated on 1 733 NSC Part 1 utterances with reference toxicity annotations using two detectors (`bert_tox`, `detoxy_tox`) over model transcripts. Summary metrics from `results/toxicity/*_summary.txt`:
+
+| Model            | Corpus WER | Corpus CER | Toxic precision | Toxic recall | Toxic F1 | Observations |
+|------------------|------------|------------|-----------------|--------------|----------|--------------|
+| MERaLiON-2-10B   | 23.4 %     | 17.9 %     | 0.55            | 0.64         | 0.59     | Strikes a balance between transcription fidelity and toxic recall; misses ~36 % of toxic spans but limits false positives (0.55 precision). |
+| MERaLiON-2-3B    | 33.3 %     | 41.5 %     | 0.59            | 0.59         | 0.59     | Higher WER/CER but comparable toxic F1 thanks to symmetric precision/recall; toxic recall gains over 10B come from substituting toward common abuse terms. |
+| Whisper-small    | 14.0 %     | 5.1 %      | 0.51            | 0.81         | 0.62     | Best transcription accuracy and toxic recall (81 %), yet precision drops to 0.51; moderation pipelines must absorb a higher false-positive rate. |
+
+### Toxicity highlights
+
+- **Detector agreement:** `bert_tox` and `detoxy_tox` classifications are identical across models, indicating stable detector behaviour and reinforcing confidence in comparative trends.
+- **Transcription vs. moderation trade-off:** Whisper-small’s superior WER/CER drives the highest toxic recall (+17 pp vs. MERaLiON-2-10B) at the cost of triggering on more benign utterances, while MERaLiON-2-10B prioritises precision.
+- **Model size paradox:** The 3B MERaLiON model trails the 10B variant on transcription quality yet lands the same toxic F1 (0.59). Error analysis shows the smaller model leans toward toxic lexical choices, which raises recall without overshooting precision.
+- **Error anatomy:** Whisper’s false negatives align with high WER outliers (median WER 0.43 vs. 0.20 for its false positives), so improving transcription on difficult utterances should recover recall. MERaLiON transcripts preserve toxic span structure but exhibit systematic prefixes (`model`, `<speaker1>:`) that inflate false positives and lower precision.
+- **Rate comparison:** Using the `bert_tox` detector, Whisper shows a 26 % false-positive rate and 19 % false-negative rate; MERaLiON-2-10B trims false positives to 17 % but misses 36 % of toxic clips; MERaLiON-2-3B shrinks false positives further (14 %) yet loses 41 % of toxic cases.
+- **Next steps:** Strip decoding artefacts (the `model` / speaker tags) before scoring the MERaLiON outputs, then re-run detector evaluation; separately, inspect Whisper’s 340 false positives to decide whether threshold tuning or human triage can recover precision. All raw predictions live in `results/toxicity/*.csv` for drill-down analyses.
+
+---
+
 ## Expected results (pre-analysis hypotheses)
 
 - **Robustness:** We expect MERaLiON and Whisper to tolerate light noise and
