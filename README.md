@@ -1,10 +1,10 @@
 # MERaLiON ASR Safety Evaluation Toolkit
 
 This repository implements the code behind our proposal to assess the safety of
-MERaLiON’s automatic speech recognition (ASR) models—focusing on robustness,
-fairness, and (later) backdoor resilience. The goal is to give both technical
-and non-technical readers a clear view of what data is used, how metrics are
-computed, and how to reproduce the experiments.
+MERaLiON's automatic speech recognition (ASR) models—focusing on robustness
+and fairness. The goal is to give both technical and non-technical readers a
+clear view of what data is used, how metrics are computed, and how to reproduce
+the experiments.
 
 ---
 
@@ -14,18 +14,16 @@ ASR systems convert audio into text. When they fail, the errors can propagate to
 legal transcripts, medical notes, or moderation pipelines and cause harm. The
 MERaLiON family of models is optimised for Singaporean and Southeast Asian
 speech, but safety considerations were explicitly deferred to downstream users.
-Our evaluation focuses on three questions:
+Our evaluation focuses on two questions:
 
 1. **Robustness:** Do transcripts stay accurate when we add realistic acoustic
    distortions such as MRT background noise or reverberation from HDB flats?
 2. **Fairness:** Are errors evenly distributed across speakers with different
    demographics, accents, or recording devices?
-3. **Backdoor resilience (stretch goal):** Can small, malicious fine-tuning
-   trigger targeted mistranscriptions without degrading normal accuracy?
 
 This repository currently delivers the robustness pipeline and the supporting
 data tooling; fairness analysis scaffolding is described below and will be
-implemented next, followed by backdoor experiments.
+implemented next.
 
 ---
 
@@ -194,16 +192,7 @@ configuration in `configs/robustness.yaml`. The pipeline:
   - Use Welch’s t-tests or ANOVA with Benjamini–Hochberg FDR control, and extend
     to calibration metrics (ECE/Brier) once token confidences are available.
 
-### Backdoor vulnerability (stretch)
-
-- **Rationale:** Small, hard-to-hear triggers can secretly flip transcripts. We
-  will explore parameter-efficient fine-tuning (LoRA/PEFT) on MERaLiON-2-3B with
-  synthetic triggers while tracking clean accuracy.
-- **Planned evaluation:** Measure attack success rate (BD-ASR%) vs. clean WER
-  each epoch, run multiple detectors (spectral signatures + activation
-  clustering) to avoid overclaiming, and audit audibility across devices/codecs.
-
-### 4. Fairness analysis (coming soon)
+### 3. Fairness analysis (coming soon)
 
 The fairness plan builds on the same manifests by joining metadata from the
 Excel spreadsheets. Steps (to be implemented next):
@@ -219,14 +208,6 @@ Excel spreadsheets. Steps (to be implemented next):
    confidences are available.
 
 Placeholder notebooks and scripts will be added under `analysis/`.
-
-### 5. Backdoor evaluation (stretch goal)
-
-Later milestones will explore parameter-efficient fine-tuning (LoRA/PEFT) with
-poisoned audio triggers. The repository already contains device-aware model
-wrappers and corruption tooling that can be repurposed for trigger insertion and
-attack success measurement (BD-ASR%). Implementation details will follow once
-robustness and fairness foundations are complete.
 
 ---
 
@@ -251,9 +232,8 @@ robustness and fairness foundations are complete.
 - `results/robustness/details.jsonl`: (optional) row-by-row transcripts for
   deeper audits.
 
-For now, the “Results” section in reports/papers can link to these CSVs; summary
-plots will be generated once fairness analysis and backdoor experiments are
-integrated.
+For now, the "Results" section in reports/papers can link to these CSVs; summary
+plots will be generated once fairness analysis is integrated.
 
 ---
 
@@ -271,15 +251,13 @@ some immediately:
   additional corruption sources (local impulse responses, device codecs).
 
 Outstanding items (interaction effects, multiple comparisons, calibration) are
-tracked in the project roadmap and will be implemented alongside fairness and
-backdoor work.
+tracked in the project roadmap and will be implemented alongside fairness work.
 
 ---
 
 ## Contributing / extending
 
-1. Open an issue or draft proposal for new corruptions, fairness features, or
-   backdoor experiments.
+1. Open an issue or draft proposal for new corruptions or fairness features.
 2. Add or update manifests/configs under `data/manifests/` and `configs/`.
 3. Ensure `make test` passes and document new user-facing behaviour in this
    README.
@@ -345,7 +323,7 @@ Full per-seed metrics and bootstrap confidence intervals are stored in
 
 ## Results (Self-Curated Conversational Dataset)
 
-Evaluated all 3 models on 2 conversational audio files (test1.mp3, test2.mp3) with manual ground truth transcripts. These samples contain multi-speaker Singlish conversations with code-switching, colloquialisms, and disfluencies. Results from `results/self_curated/summary.csv`:
+Evaluated all 3 models on 2 conversational audio files (test1.mp3, test2.mp3) with manual ground truth transcripts covering the first ~30 seconds of each file. Model transcripts were trimmed to match reference token count to ensure fair comparison. These samples contain multi-speaker Singlish conversations with code-switching, colloquialisms, and disfluencies. Results from `results/self_curated/summary.csv`:
 
 | Model            | Clean WER | Clean CER | Worst ΔWER | Worst corruption (WER) | Best improvement (ΔWER) | Observations |
 |------------------|-----------|-----------|------------|------------------------|-------------------------|--------------|
@@ -411,9 +389,6 @@ All three models were evaluated on 1 733 NSC Part 1 utterances with referenc
   code-switched speech. Unless device/SNR distributions are perfectly balanced
   we anticipate similar gaps; adjusted analyses will help identify whether the
   cause is demographic, device, or environment.
-- **Backdoor:** Clean-label, low-energy triggers are likely to succeed during
-  PEFT without strong regularisation, underscoring the need for guardrails once
-  baseline robustness/fairness numbers are in place.
 
 ---
 
