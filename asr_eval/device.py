@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 import torch
 
 
@@ -9,6 +11,11 @@ class Device:
     """Pick an appropriate torch device with sensible defaults."""
 
     def __init__(self) -> None:
+        force = os.environ.get("ASR_EVAL_FORCE_DEVICE")
+        if force:
+            self.type = force
+            return
+
         mps_backend = getattr(torch.backends, "mps", None)
         if mps_backend is not None and getattr(mps_backend, "is_available", lambda: False)():
             self.type = "mps"
