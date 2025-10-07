@@ -9,6 +9,10 @@ models:
   - meralion-2-3b
   - whisper-small
 
+max_chunk_seconds: 28
+chunk_overlap_seconds: 2
+trim_to_ref_tokens: true
+
 corruptions:
   none: [0]
   noise_snr_db: [30, 20, 10]
