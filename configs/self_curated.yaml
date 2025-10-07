@@ -1,4 +1,8 @@
-# Self-curated dataset robustness evaluation (test1-test2 with ground truth)
+# Self-curated dataset robustness evaluation
+# Dataset: 2 conversational Singlish audio files (test1.mp3, test2.mp3)
+# Audio is chunked into 28-second segments with 2-second overlap
+# Transcripts are trimmed to match reference token count (first ~30s of audio only)
+# Ground truth transcripts manually created for first 30 seconds of each file
 dataset_manifest: "data/manifests/self_curated.jsonl"
 dataset_audio_dir: "data/robustness/audio"
 text_field: "text"
@@ -9,9 +13,10 @@ models:
   - meralion-2-3b
   - whisper-small
 
-max_chunk_seconds: 28
-chunk_overlap_seconds: 2
-trim_to_ref_tokens: true
+# Audio processing settings
+max_chunk_seconds: 28        # Maximum chunk size for long audio files
+chunk_overlap_seconds: 2     # Overlap between consecutive chunks
+trim_to_ref_tokens: true     # Trim hypothesis to reference token count (ensures evaluation on first ~30s only)
 
 corruptions:
   none: [0]
