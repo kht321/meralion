@@ -347,27 +347,36 @@ Full per-seed metrics and bootstrap confidence intervals are stored in
 
 Evaluated all 3 models on 2 conversational audio files (test1.mp3, test2.mp3) with manual ground truth transcripts. These samples contain multi-speaker Singlish conversations with code-switching, colloquialisms, and disfluencies. Results from `results/self_curated/summary.csv`:
 
-| Model            | Clean WER | Clean CER | Worst ΔWER | Worst corruption (WER) | Observations |
-|------------------|-----------|-----------|------------|------------------------|--------------|
-| MERaLiON-2-10B   | 62.2 %    | 34.2 %    | +13.4 pp  | Speed 0.8× (43.0 %) | Severe degradation on conversational speech; speed changes improve performance (best: –19.2 pp at 0.8×). |
-| MERaLiON-2-3B    | 38.8 %    | 27.8 %    | +28.3 pp  | Noise SNR 10 dB (67.1 %) | Significantly outperforms 10B variant (–23.4 pp WER); extremely vulnerable to noise (+28.3 pp at 10 dB SNR). |
-| Whisper-small    | 56.0 %    | 52.6 %    | +35.5 pp  | Reverb decay 0.8 (91.5 %) | High baseline error; reverb causes catastrophic failure (+35.5 pp). Speed 1.1× improves performance (–3.3 pp). |
+| Model            | Clean WER | Clean CER | Worst ΔWER | Worst corruption (WER) | Best improvement (ΔWER) | Observations |
+|------------------|-----------|-----------|------------|------------------------|-------------------------|--------------|
+| MERaLiON-2-10B   | 58.0 %    | 29.5 %    | +7.5 pp   | Speed 0.8x (65.5 %)   | -5.2 pp (Pitch +2 semitones) | Severe degradation on conversational speech; slowed playback degrades further while pitch shifts help. |
+| MERaLiON-2-3B    | 33.9 %    | 23.9 %    | +21.6 pp  | Noise SNR 10 dB (55.5 %) | -3.3 pp (Reverb 0.8 decay) | Dramatically outperforms 10B by 24.1 pp; extremely vulnerable to noise on conversational data. |
+| Whisper-small    | 58.6 %    | 52.3 %    | +24.4 pp  | Reverb decay 0.8 (83.1 %) | -6.5 pp (Speed 1.1x) | Poor baseline on conversational Singlish; reverb catastrophic, faster playback improves performance. |
 
 ### Key Observations (Conversational Speech)
 
-- **Domain shift impact:** All models perform dramatically worse on conversational Singlish compared to NSC read speech. MERaLiON-2-10B WER jumps from 26.1 % (NSC) to 62.2 % (conversational), MERaLiON-2-3B from 29.0 % to 38.8 %, and Whisper-small from 17.9 % to 56.0 %.
+- **Domain shift impact:** All models perform dramatically worse on conversational Singlish compared to NSC read speech. MERaLiON-2-10B WER jumps from 26.1 % (NSC) to 58.0 % (conversational), MERaLiON-2-3B from 29.0 % to 33.9 %, and Whisper-small from 17.9 % to 58.6 %.
 
-- **Unexpected model size reversal:** On conversational data, the smaller MERaLiON-2-3B **dramatically outperforms** the 10B variant (38.8 % vs 62.2 % WER, a 23.4 pp gap). This reverses the NSC pattern and suggests the 3B model may have better exposure to conversational training data or better generalization to informal speech patterns.
+- **Unexpected model size reversal:** On conversational data, the smaller MERaLiON-2-3B **dramatically outperforms** the 10B variant (33.9 % vs 58.0 % WER, a 24.1 pp gap). This reverses the NSC pattern where 10B led by 2.9 pp, suggesting the 3B model has significantly better exposure to conversational training data or superior generalization to informal, code-switched speech patterns.
 
-- **Extreme noise vulnerability (3B):** While MERaLiON-2-3B excels on clean conversational audio, it suffers severe noise degradation (+28.3 pp at 10 dB SNR vs +5.2 pp on NSC), indicating poor noise robustness on out-of-domain data.
+- **Extreme noise vulnerability (3B on conversational data):** While MERaLiON-2-3B excels on clean conversational audio, it suffers severe noise degradation (+21.6 pp at 10 dB SNR) compared to NSC (+5.2 pp). This 4x amplification of noise sensitivity on out-of-domain data indicates the 3B model's noise robustness is highly domain-dependent and degrades sharply outside its training distribution.
 
-- **Speed perturbation paradox:** Slower playback (0.8×) consistently improves all models on conversational speech (–19.2 pp for 10B, –0.7 pp for 3B, +10.1 pp for Whisper). This contrasts with NSC where speed changes had minimal impact, suggesting models benefit from additional time to process rapid, code-switched speech.
+- **Speed perturbation divergence:** Speed changes show opposite effects across models on conversational speech:
+  - **MERaLiON-2-10B:** Slower playback (0.8x) *degrades* performance (+7.5 pp), counter to expectations.
+  - **MERaLiON-2-3B:** Slower playback (0.9x) also degrades (+10.1 pp), suggesting both MERaLiON models struggle when conversational tempo is artificially slowed.
+  - **Whisper-small:** Faster playback (1.1x) *improves* performance (-6.5 pp), indicating it benefits from compressed tempo on code-switched speech.
+  - This contrasts sharply with NSC where speed changes had minimal impact (< ±1 pp), revealing that conversational speech processing is fundamentally different from read speech.
 
-- **Reverb remains catastrophic for Whisper:** Heavy reverberation (decay 0.8) causes Whisper to fail completely on conversational speech (91.5 % WER, +35.5 pp), similar to NSC results but with even worse absolute performance.
+- **Perfect clipping robustness (3B):** MERaLiON-2-3B shows zero degradation across all clipping ratios (0.98, 0.9, 0.8) on conversational data, matching its perfect clipping robustness on NSC. The 10B variant also shows negligible clipping impact.
 
-- **Dataset size limitation:** Results based on only 2 utterances; confidence intervals and variance are not meaningful. Requires expansion to 50+ diverse conversational samples for robust conclusions.
+- **Reverb remains catastrophic for Whisper:** Heavy reverberation (decay 0.8) causes severe failure on conversational speech (83.1 % WER, +24.4 pp), consistent with NSC results (95.5 % WER) but with slightly better absolute performance. Whisper's architectural sensitivity to long-tail impulse responses persists across domains.
+
+- **Pitch shift benefits (10B):** MERaLiON-2-10B uniquely shows improvement with +2 semitone pitch shift (-5.2 pp WER), suggesting pitch normalization may help on conversational Singlish where speakers have variable prosody and pitch patterns.
+
+- **Dataset size limitation:** Results based on only 2 utterances; confidence intervals are meaningless and seed-to-seed variance cannot be properly assessed. Requires expansion to 50+ diverse conversational samples for statistically robust conclusions.
 
 Full per-seed metrics are stored in `results/self_curated/per_seed.csv` and `results/self_curated/summary.csv`.
+
 
 ---
 
