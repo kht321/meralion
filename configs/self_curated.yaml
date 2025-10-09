@@ -1,5 +1,6 @@
 # Self-curated dataset robustness evaluation
-# Dataset: 2 conversational Singlish audio files (test1.mp3, test2.mp3)
+# Dataset: 20 conversational Singlish audio files from TikTok/Instagram (test1-test20.mp3)
+# Audio types: podcast, multispeaker, interview, street vlog, background music, outdoor recording, conversation, varying volumes
 # Audio is chunked into 28-second segments with 2-second overlap
 # Transcripts are trimmed to match reference token count (first ~30s of audio only)
 # Ground truth transcripts manually created for first 30 seconds of each file
