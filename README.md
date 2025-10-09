@@ -273,11 +273,11 @@ NSC Part 1 under clean audio and five corruption types (noise, speed, pitch,
 reverb, clipping) across three seeds per setting. Key aggregates from
 `results/robustness/summary.csv`:
 
-| Model            | Clean WER | Clean CER | Worst ΔWER | Worst corruption (WER) | Observations |
-|------------------|-----------|-----------|------------|------------------------|--------------|
-| MERaLiON-2-10B   | 26.1 %    | 22.1 %    | +6.2 pp    | Noise SNR 10 dB (32.3 %) | Mild speed/pitch shifts give a small boost (≈–1 pp); clipping and moderate reverb change <1 pp. |
-| MERaLiON-2-3B    | 29.0 %    | 29.3 %    | +5.2 pp    | Noise SNR 10 dB (34.2 %) | Very robust to clipping (0 pp change); noise at 10 dB adds +5.2 pp. All other corruptions stay within +1.1 pp. |
-| Whisper-small    | 17.9 %    | 6.1 %     | +77.6 pp   | Reverb decay 0.8 (95.5 %) | Strong reverb severely degrades performance; light noise (30 dB) adds ~0.4 pp, while 10 dB noise adds 18.8 pp. |
+| Model            | Clean WER | Clean CER | Avg ΔWER | Worst ΔWER | Worst corruption (WER) | Observations |
+|------------------|-----------|-----------|----------|------------|------------------------|--------------|
+| MERaLiON-2-10B   | 26.1 %    | 22.1 %    | +0.3 pp  | +6.2 pp    | Noise SNR 10 dB (32.3 %) | Excellent overall robustness (avg +0.3 pp); mild speed/pitch shifts give a small boost (≈–1 pp); clipping and moderate reverb change <1 pp. |
+| MERaLiON-2-3B    | 29.0 %    | 29.3 %    | N/A      | +5.2 pp    | Noise SNR 10 dB (34.2 %) | Very robust to clipping (0 pp change); noise at 10 dB adds +5.2 pp. All other corruptions stay within +1.1 pp. (No NSC evaluation run yet) |
+| Whisper-small    | 17.9 %    | 6.1 %     | +9.6 pp  | +77.6 pp   | Reverb decay 0.8 (95.5 %) | Average degradation of +9.6 pp driven by catastrophic reverb failure; light noise (30 dB) adds ~0.4 pp, while 10 dB noise adds 18.8 pp. |
 
 ### Insights
 
@@ -325,11 +325,11 @@ Full per-seed metrics and bootstrap confidence intervals are stored in
 
 Evaluated all 3 models on 20 conversational audio files (test1–test20.mp3) sourced from TikTok and Instagram, with manual ground truth transcripts covering the first ~30 seconds of each file. Model transcripts were trimmed to match reference token count to ensure fair comparison. Audio types span podcast, multispeaker, interview, street vlog, background music, outdoor recording, conversation, and varying volume conditions. These samples contain multi-speaker Singlish conversations with code-switching, colloquialisms, and disfluencies. Results from `results/self_curated/summary.csv`:
 
-| Model            | Clean WER | Clean CER | Worst ΔWER | Worst corruption (WER) | Best improvement (ΔWER) | Observations |
-|------------------|-----------|-----------|------------|------------------------|-------------------------|--------------|
-| MERaLiON-2-10B   | 39.8 %    | 21.2 %    | +5.3 pp   | Speed 0.8x (45.1 %)   | -1.5 pp (Speed 1.1x) | Moderate degradation on conversational speech; slowed playback degrades while faster playback helps. |
-| MERaLiON-2-3B    | 23.8 %    | 15.4 %    | +12.3 pp  | Noise SNR 10 dB (36.0 %) | -0.5 pp (Speed 1.1x) | Dramatically outperforms 10B by 16.0 pp; vulnerable to noise on conversational data. |
-| Whisper-small    | 38.0 %    | 30.7 %    | +23.8 pp  | Reverb decay 0.8 (61.7 %) | -3.8 pp (Speed 1.1x) | Poor performance on conversational Singlish; reverb catastrophic, faster playback improves performance. |
+| Model            | Clean WER | Clean CER | Avg ΔWER | Worst ΔWER | Worst corruption (WER) | Best improvement (ΔWER) | Observations |
+|------------------|-----------|-----------|----------|------------|------------------------|-------------------------|--------------|
+| MERaLiON-2-10B   | 39.8 %    | 21.2 %    | +0.8 pp  | +5.3 pp   | Speed 0.8x (45.1 %)   | -1.5 pp (Speed 1.1x) | Excellent overall robustness on conversational speech (avg +0.8 pp); slowed playback degrades while faster playback helps. |
+| MERaLiON-2-3B    | 23.8 %    | 15.4 %    | +3.5 pp  | +12.3 pp  | Noise SNR 10 dB (36.0 %) | -0.5 pp (Speed 1.1x) | Dramatically outperforms 10B by 16.0 pp on clean; moderate average degradation (+3.5 pp) but vulnerable to noise on conversational data. |
+| Whisper-small    | 38.0 %    | 30.7 %    | +3.6 pp  | +23.8 pp  | Reverb decay 0.8 (61.7 %) | -3.8 pp (Speed 1.1x) | Poor baseline on conversational Singlish; average degradation (+3.6 pp) similar to 3B despite catastrophic reverb failure; faster playback improves performance. |
 
 ### Key Observations (Conversational Speech)
 
