@@ -33,6 +33,12 @@ Perform a white-box audit of the MERaLiON decoding stack by instrumenting interm
 - `latency_overhead_ms = mean(intervention_run_latency - baseline_latency)` for instrumentation + masking.
 - `WER_delta` on benign clips post-intervention to quantify transcription degradation.
 
+## Methodology Snapshot
+- **Lineage**: Adapted the robustness harness to smoke harmful-content exposure inside the decoder rather than treat the model as an opaque API.
+- **Heart of the experiment**: Run each clip twice—baseline and with a configured logits processor—while capturing decoder traces and timing. The difference between the runs drives all exposure metrics.
+- **Limitations**: Current masking relies on keyword heuristics; it neither generalises to misspellings nor captures context. Future iterations should swap in detector-guided logits processors and richer datasets.
+- **Success criteria**: A viable approach demonstrates material reduction in logit exposure with minimal false rejections and manageable latency.
+
 ## Reporting
 - Produce per-model summaries in `results/guardrails/summary_{model}.md` describing exposure, intervention effectiveness, and transcription cost.
 - Provide JSONL logs with rich metadata for forensic review and to seed future detector training.
@@ -49,10 +55,10 @@ Perform a white-box audit of the MERaLiON decoding stack by instrumenting interm
 - 🟡 Dataset expansion pending — need realistic harmful clips and a dedicated PII bucket.
 - ✅ MERaLiON wrapper now exposes guardrail toggles, raw metadata, and decoder trace capture (`asr_eval/models/meralion.py`); keyword filter retained for audit comparisons only.
 - ✅ White-box runner (`asr_eval/whitebox/run_guardrail_eval.py`) logs per-clip metadata and metrics; will be extended to apply logits processors.
-- ⏳ Logit masking / constrained decoding implementation outstanding.
-- ⏳ Baseline vs intervention runs pending expanded dataset and finalized intervention hook.
+- ✅ Logit masking prototype wired via `KeywordMaskingLogitsProcessor` (keyword-based).
+- ⏳ Baseline vs intervention runs pending expanded dataset and threshold calibration.
 
 ### Immediate Next Actions
 1. Augment the dataset with realistic harmful clips (target ≥40 total) and tag them in `transcripts.json`.
-2. Implement a logits-processor hook that masks risky tokens based on configurable detectors (keyword or model-based).
+2. Calibrate the logits processor (thresholds, keyword coverage, possible detector integration) using pilot runs.
 3. Execute baseline + intervention runs for each model, compute the exposure/intervention metrics, and document findings with clear scope limitations (white-box audit, not production guardrail).
