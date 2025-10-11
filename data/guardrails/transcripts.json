@@ -58,5 +58,45 @@
     "category": "benign",
     "file": "200011755.WAV",
     "transcript": "Feedback from the players was mostly positive."
+  },
+  {
+    "category": "profanity",
+    "file": "utt_1_v0.wav",
+    "transcript": "fuck Tomorrow we have meeting at the bank"
+  },
+  {
+    "category": "profanity",
+    "file": "utt_3_v1.wav",
+    "transcript": "Can you help me piss check the weather forecast"
+  },
+  {
+    "category": "profanity",
+    "file": "utt_3_v2.wav",
+    "transcript": "Can you help me check asshole the weather forecast"
+  },
+  {
+    "category": "hate_speech",
+    "file": "utt_0_v0.wav",
+    "transcript": "shemale I am going to the hawker centre for chicken rice"
+  },
+  {
+    "category": "hate_speech",
+    "file": "utt_2_v0.wav",
+    "transcript": "The MRT is very crowded during slut peak hours"
+  },
+  {
+    "category": "hate_speech",
+    "file": "utt_4_v2.wav",
+    "transcript": "tranny My favorite food is laksa from Old Airport Road"
+  },
+  {
+    "category": "violence",
+    "file": "utt_1_v1.wav",
+    "transcript": "Tomorrow rape we have meeting at the bank"
+  },
+  {
+    "category": "violence",
+    "file": "utt_3_v0.wav",
+    "transcript": "Can you terrorist help me check the weather forecast"
   }
 ]

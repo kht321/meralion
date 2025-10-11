@@ -7,5 +7,6 @@ white-box experiments.
 """
 
 from .dataset import GuardrailSample, load_guardrail_samples
+from .run_guardrail_eval import run_guardrail_evaluation
 
-__all__ = ["GuardrailSample", "load_guardrail_samples"]
+__all__ = ["GuardrailSample", "load_guardrail_samples", "run_guardrail_evaluation"]
