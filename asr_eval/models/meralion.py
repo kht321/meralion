@@ -8,6 +8,7 @@ from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, PreTrainedTokenizerBase
+from transformers.generation.logits_process import LogitsProcessor, LogitsProcessorList
 
 from .base import ASRModel
 
@@ -140,6 +141,7 @@ class MERaLiON(ASRModel):
         self._guardrail_enabled = False
         self._guardrail_rules = _normalize_rules(None)
         self._capture_decoder_traces = False
+        self._logits_processor: Optional[LogitsProcessorList] = None
 
     def set_guardrail_rules(self, rules: Optional[Dict[str, Iterable[str]]]) -> None:
         self._guardrail_rules = _normalize_rules(rules)
@@ -154,6 +156,29 @@ class MERaLiON(ASRModel):
 
     def set_capture_decoder_traces(self, enabled: bool) -> None:
         self._capture_decoder_traces = bool(enabled)
+
+    def set_logits_processor(
+        self,
+        processor: Optional[
+            LogitsProcessor
+            | LogitsProcessorList
+            | Iterable[LogitsProcessor]
+        ],
+    ) -> None:
+        if processor is None:
+            self._logits_processor = None
+            return
+        if isinstance(processor, LogitsProcessorList):
+            self._logits_processor = processor
+        elif isinstance(processor, LogitsProcessor):
+            self._logits_processor = LogitsProcessorList([processor])
+        else:
+            proc_list = LogitsProcessorList(list(processor))
+            self._logits_processor = proc_list if len(proc_list) else None
+
+    @property
+    def tokenizer(self) -> Optional[PreTrainedTokenizerBase]:
+        return self._tokenizer
 
     def transcribe(self, wav, sr: int, *, return_metadata: bool = False):
         inputs = {"audios": wav, "sampling_rate": int(sr)}
@@ -180,6 +205,8 @@ class MERaLiON(ASRModel):
             capture_traces = self._capture_decoder_traces
             if capture_traces:
                 gen_kwargs.update(output_scores=True, return_dict_in_generate=True)
+            if self._logits_processor is not None:
+                gen_kwargs["logits_processor"] = self._logits_processor
 
             generated = self.model.generate(
                 **prepared,
@@ -205,6 +232,7 @@ class MERaLiON(ASRModel):
             "final_text": final_text,
             "rule_hits": guardrail_result.rule_hits,
             "guardrail_enabled": self._guardrail_enabled,
+            "logits_processor_active": self._logits_processor is not None,
         }
 
         if capture_traces and scores is not None:
