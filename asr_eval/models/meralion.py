@@ -92,7 +92,12 @@ class MERaLiON(ASRModel):
             prepared[key] = value
 
         with torch.no_grad():
-            generated = self.model.generate(**prepared, max_new_tokens=256)
+            generated = self.model.generate(
+                **prepared,
+                max_new_tokens=128,
+                do_sample=False,
+                num_beams=1
+            )
 
         decoded = self.processor.batch_decode(generated, skip_special_tokens=True)
         transcript = decoded[0] if decoded else ""

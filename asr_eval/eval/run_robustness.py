@@ -285,6 +285,11 @@ def run(cfg_path: Path, emit_jsonl: bool = False) -> None:
                             "cer_delta_vs_clean": scores.cer - clean_scores.cer,
                         }
                     )
+
+                    # Save checkpoint after each corruption completes
+                    checkpoint = pd.DataFrame(summary_rows)
+                    checkpoint_path = results_dir / "per_seed_checkpoint.csv"
+                    checkpoint.to_csv(checkpoint_path, index=False)
         finally:
             model.close()
 
