@@ -37,3 +37,11 @@ Quantify baseline pass-through of harmful speech and demonstrate minimal viable 
 ## Open Questions
 - How should multilingual or code-switched audio be treated? (Not covered in this minimal pass.)
 - Do we need to escalate findings to product/legal before launch?
+
+## Current Status (2025-10-11)
+- ✅ Segregated white-box helper code under `asr_eval/whitebox/` to avoid touching the main evaluation pipeline.
+- ✅ Seeded benign control clips from NSC into `data/guardrails/audio/benign`.
+- ✅ Generated aligned transcripts for the benign set in `data/guardrails/transcripts.json`.
+- ⏳ Need to add harmful-category clips (profanity, hate, violence, PII) and extend the transcript JSON accordingly.
+- ⏳ Instrumentation (`decoder.debug`, `_clean_output` hooks, JSONL logging) not yet implemented.
+- ⏳ Baseline and post-guardrail runs still pending once the sample set and instrumentation are in place.
