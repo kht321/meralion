@@ -19,11 +19,24 @@ PROMPT_TEMPLATE = (
 )
 TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(q="Please transcribe this speech.")
 
-# Minimal keyword rules for white-box guardrail experiments (opt-in).
+# Comprehensive keyword rules for white-box guardrail experiments (opt-in).
+# Includes common variants to ensure effective token-level blocking.
 DEFAULT_GUARDRAIL_RULES: Dict[str, Tuple[str, ...]] = {
-    "profanity": ("fuck", "piss", "asshole"),
-    "hate_speech": ("shemale", "tranny", "slut"),
-    "violence": ("rape", "terrorist"),
+    "profanity": (
+        "fuck", "fucking", "fucked", "fucker", "fucks", "motherfucker",
+        "shit", "shitting", "shitty", "bullshit",
+        "damn", "damned", "dammit",
+        "asshole", "assholes",
+        "piss", "pissed", "pissing",
+    ),
+    "hate_speech": (
+        "shemale", "tranny",
+        "slut", "sluts", "slutty",
+    ),
+    "violence": (
+        "rape", "raped", "raping", "rapist",
+        "terrorist", "terrorists", "terrorism",
+    ),
 }
 
 
