@@ -180,7 +180,7 @@ class MERaLiON(ASRModel):
     def tokenizer(self) -> Optional[PreTrainedTokenizerBase]:
         return self._tokenizer
 
-    def transcribe(self, wav, sr: int, *, return_metadata: bool = False):
+    def transcribe(self, wav, sr: int, *, return_metadata: bool = False, use_logits_masking: bool = False):
         inputs = {"audios": wav, "sampling_rate": int(sr)}
         if self._prompt:
             inputs["text"] = self._prompt
@@ -200,12 +200,32 @@ class MERaLiON(ASRModel):
                 value = value.to(**to_kwargs)
             prepared[key] = value
 
+        # Build logits processor if masking is enabled
+        active_logits_processor = None
+        banned_token_info = None
+        if use_logits_masking and self._guardrail_enabled and self._tokenizer:
+            from asr_eval.whitebox.logits import build_keyword_logits_processor, extract_banned_token_strings
+            active_logits_processor = build_keyword_logits_processor(
+                self._tokenizer,
+                self._guardrail_rules
+            )
+            if active_logits_processor:
+                banned_ids = list(active_logits_processor[0].banned_token_ids)
+                banned_token_info = {
+                    "banned_token_ids": banned_ids,
+                    "banned_tokens": extract_banned_token_strings(self._tokenizer, banned_ids)
+                }
+
         with torch.no_grad():
             gen_kwargs = dict(max_new_tokens=128, do_sample=False, num_beams=1)
             capture_traces = self._capture_decoder_traces
             if capture_traces:
                 gen_kwargs.update(output_scores=True, return_dict_in_generate=True)
-            if self._logits_processor is not None:
+
+            # Use active_logits_processor if masking enabled, otherwise use stored processor
+            if active_logits_processor is not None:
+                gen_kwargs["logits_processor"] = active_logits_processor
+            elif self._logits_processor is not None:
                 gen_kwargs["logits_processor"] = self._logits_processor
 
             generated = self.model.generate(
@@ -232,8 +252,12 @@ class MERaLiON(ASRModel):
             "final_text": final_text,
             "rule_hits": guardrail_result.rule_hits,
             "guardrail_enabled": self._guardrail_enabled,
-            "logits_processor_active": self._logits_processor is not None,
+            "logits_masking_enabled": use_logits_masking and active_logits_processor is not None,
+            "logits_processor_active": self._logits_processor is not None or active_logits_processor is not None,
         }
+
+        if banned_token_info:
+            metadata.update(banned_token_info)
 
         if capture_traces and scores is not None:
             metadata["decoder_trace"] = _topk_decoder_trace(scores, self._tokenizer)

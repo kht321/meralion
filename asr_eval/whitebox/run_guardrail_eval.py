@@ -41,6 +41,7 @@ def _prepare_audio(path: Path) -> tuple[Sequence[float], int]:
 def _transcribe_batch(
     model: MERaLiON,
     samples: Sequence[GuardrailSample],
+    use_logits_masking: bool = False,
 ) -> RunResult:
     records: List[dict] = []
     latencies: List[float] = []
@@ -48,7 +49,7 @@ def _transcribe_batch(
     for sample in samples:
         wav, sr = _prepare_audio(sample.audio_path)
         start = time.perf_counter()
-        metadata = model.transcribe(wav, sr, return_metadata=True)
+        metadata = model.transcribe(wav, sr, return_metadata=True, use_logits_masking=use_logits_masking)
         latency_ms = (time.perf_counter() - start) * 1000.0
         latencies.append(latency_ms)
 
@@ -62,11 +63,16 @@ def _transcribe_batch(
             "final_text": metadata["final_text"],
             "rule_hits": metadata["rule_hits"],
             "guardrail_enabled": metadata["guardrail_enabled"],
-            "logits_processor_active": metadata["logits_processor_active"],
+            "logits_masking_enabled": metadata.get("logits_masking_enabled", False),
+            "logits_processor_active": metadata.get("logits_processor_active", False),
             "latency_ms": latency_ms,
         }
         if "decoder_trace" in metadata:
             record["decoder_trace"] = metadata["decoder_trace"]
+        if "banned_tokens" in metadata:
+            record["banned_tokens"] = metadata["banned_tokens"]
+        if "banned_token_ids" in metadata:
+            record["banned_token_ids"] = metadata["banned_token_ids"]
         records.append(record)
 
     mean_latency = mean(latencies) if latencies else 0.0
@@ -179,8 +185,15 @@ def run_guardrail_evaluation(
     capture_decoder_trace: bool = False,
     output_dir: Path = Path("results/guardrails"),
 ) -> None:
+    # Resolve model alias
+    ALIASES = {
+        "meralion-2-10b": "MERaLiON/MERaLiON-2-10B",
+        "meralion-2-3b": "MERaLiON/MERaLiON-2-3B",
+    }
+    resolved_model_id = ALIASES.get(model_id.lower(), model_id)
+
     device = Device()
-    model = MERaLiON(model_id, device)
+    model = MERaLiON(resolved_model_id, device)
     model.set_capture_decoder_traces(capture_decoder_trace)
 
     try:
@@ -202,10 +215,10 @@ def run_guardrail_evaluation(
                     banned_token_ids.update(processor.banned_token_ids)
         banned_token_strings = extract_banned_token_strings(model.tokenizer, banned_token_ids)
 
-        # Baseline run (no guardrail)
+        # Baseline run (no guardrail, no logits masking)
         model.disable_guardrail()
         model.set_logits_processor(None)
-        baseline_result = _transcribe_batch(model, samples)
+        baseline_result = _transcribe_batch(model, samples, use_logits_masking=False)
         baseline_metrics = _compute_metrics(
             baseline_result.records,
             keywords=keyword_list,
@@ -214,16 +227,16 @@ def run_guardrail_evaluation(
         baseline_log = log_dir / f"{timestamp}_baseline.jsonl"
         _write_jsonl(baseline_log, baseline_result.records)
 
-        # Guardrail run
+        # Intervention run (guardrail enabled + logits masking)
         model.enable_guardrail(DEFAULT_GUARDRAIL_RULES)
-        model.set_logits_processor(logits_processor)
-        guardrail_result = _transcribe_batch(model, samples)
+        model.set_logits_processor(None)  # Clear stored processor, use dynamic masking
+        guardrail_result = _transcribe_batch(model, samples, use_logits_masking=True)
         guardrail_metrics = _compute_metrics(
             guardrail_result.records,
             keywords=keyword_list,
             banned_token_strings=banned_token_strings,
         )
-        guardrail_log = log_dir / f"{timestamp}_guardrail.jsonl"
+        guardrail_log = log_dir / f"{timestamp}_intervention.jsonl"
         _write_jsonl(guardrail_log, guardrail_result.records)
 
         latency_delta = guardrail_metrics["mean_latency_ms"] - baseline_metrics["mean_latency_ms"]

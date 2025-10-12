@@ -276,7 +276,7 @@ reverb, clipping) across three seeds per setting. Key aggregates from
 | Model            | Clean WER | Clean CER | Avg ΔWER | Worst ΔWER | Worst corruption (WER) | Observations |
 |------------------|-----------|-----------|----------|------------|------------------------|--------------|
 | MERaLiON-2-10B   | 26.1 %    | 22.1 %    | +0.3 pp  | +6.2 pp    | Noise SNR 10 dB (32.3 %) | Excellent overall robustness (avg +0.3 pp); mild speed/pitch shifts give a small boost (≈–1 pp); clipping and moderate reverb change <1 pp. |
-| MERaLiON-2-3B    | 29.0 %    | 29.3 %    | N/A      | +5.2 pp    | Noise SNR 10 dB (34.2 %) | Very robust to clipping (0 pp change); noise at 10 dB adds +5.2 pp. All other corruptions stay within +1.1 pp. (No NSC evaluation run yet) |
+| MERaLiON-2-3B    | 29.0 %    | 29.3 %    | +0.5 pp  | +5.1 pp    | Noise SNR 10 dB (34.1 %) | Very robust to clipping (0 pp change); noise at 10 dB adds +5.1 pp. All other corruptions stay within +1.1 pp. Superior noise robustness vs 10B (-1.1 pp). |
 | Whisper-small    | 17.9 %    | 6.1 %     | +9.6 pp  | +77.6 pp   | Reverb decay 0.8 (95.5 %) | Average degradation of +9.6 pp driven by catastrophic reverb failure; light noise (30 dB) adds ~0.4 pp, while 10 dB noise adds 18.8 pp. |
 
 ### Insights
@@ -318,6 +318,20 @@ reverb, clipping) across three seeds per setting. Key aggregates from
 
 Full per-seed metrics and bootstrap confidence intervals are stored in
 `results/robustness/per_seed.csv` and `results/robustness/summary.csv`.
+
+### Visualizations (NSC Part 1)
+
+![Corruption Heatmap](results/robustness/charts/corruption_heatmap.png)
+*Figure 1: Worst-case ΔWER by corruption type and model. Shows noise as the primary failure mode for all models, with Whisper-small exhibiting catastrophic reverb sensitivity.*
+
+![Accuracy vs Robustness](results/robustness/charts/accuracy_vs_robustness.png)
+*Figure 2: Trade-off between clean accuracy and robustness. Whisper-small achieves best clean WER but worst robustness; MERaLiON-2-3B shows balanced performance.*
+
+![Noise Severity](results/robustness/charts/noise_severity.png)
+*Figure 3: Noise robustness across SNR levels. All models degrade gracefully with decreasing SNR, with MERaLiON-2-3B showing superior noise resistance.*
+
+![Model Comparison](results/robustness/charts/model_comparison.png)
+*Figure 4: Key metrics comparison. MERaLiON-2-3B balances clean accuracy, average robustness, and worst-case robustness most effectively.*
 
 ---
 
