@@ -1,0 +1,17 @@
+TOXICITY EVALUATION RESULTS - WHISPER-SMALL\n============================================================\nCorpus WER: 0.1688\nCorpus CER: 0.0574\nValid utterances: 534/534\n\n\nBERT_TOX Classification Report:\n              precision    recall  f1-score   support
+
+   Non-toxic       1.00      0.17      0.30       534
+       Toxic       0.00      0.00      0.00         0
+
+    accuracy                           0.17       534
+   macro avg       0.50      0.09      0.15       534
+weighted avg       1.00      0.17      0.30       534
+\n\nDETOXY_TOX Classification Report:\n              precision    recall  f1-score   support
+
+   Non-toxic       1.00      0.17      0.30       534
+       Toxic       0.00      0.00      0.00         0
+
+    accuracy                           0.17       534
+   macro avg       0.50      0.09      0.15       534
+weighted avg       1.00      0.17      0.30       534
+\n
