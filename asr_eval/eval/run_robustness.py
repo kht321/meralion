@@ -23,6 +23,7 @@ from ..models.whisper import Whisper
 
 ALIASES = {
     "meralion-2-10b": "MERaLiON/MERaLiON-2-10B",
+    "meralion-2-3b": "MERaLiON/MERaLiON-2-3B",
     "whisper-small": "openai/whisper-small",
 }
 
@@ -31,6 +32,8 @@ def build_model(name: str, device: Device):
     canonical = name.lower().strip()
     if canonical in {"meralion", "meralion-2-10b"}:
         return MERaLiON(ALIASES["meralion-2-10b"], device)
+    if canonical == "meralion-2-3b":
+        return MERaLiON(ALIASES["meralion-2-3b"], device)
     if canonical in {"whisper", "whisper-small"}:
         return Whisper(ALIASES["whisper-small"], device)
     if "meralion" in canonical:
@@ -94,6 +97,60 @@ def _prepare_audio(wav: np.ndarray, sr: int) -> Tuple[np.ndarray, int]:
     return wav, sr
 
 
+def _transcribe_full_audio(
+    model,
+    wav: np.ndarray,
+    sr: int,
+    max_chunk_seconds: float | None,
+    overlap_seconds: float,
+) -> str:
+    if not max_chunk_seconds or max_chunk_seconds <= 0:
+        return model.transcribe(wav, sr)
+
+    duration = wav.shape[0] / float(sr)
+    if duration <= max_chunk_seconds:
+        return model.transcribe(wav, sr)
+
+    max_samples = max(int(max_chunk_seconds * sr), 1)
+    overlap_samples = max(int(overlap_seconds * sr), 0)
+    if overlap_samples >= max_samples:
+        overlap_samples = max_samples // 4
+    step = max(max_samples - overlap_samples, 1)
+
+    transcripts: List[str] = []
+    start = 0
+    total = wav.shape[0]
+    while start < total:
+        end = min(start + max_samples, total)
+        chunk = wav[start:end]
+        transcripts.append(model.transcribe(chunk, sr))
+        if end >= total:
+            break
+        start += step
+
+    return " ".join(t.strip() for t in transcripts if t.strip())
+
+
+def _trim_transcript(hyp: str, ref: str, do_trim: bool) -> str:
+    if not do_trim:
+        return hyp
+
+    ref = ref.strip()
+    if not ref:
+        return hyp
+
+    ref_tokens = ref.split()
+    if not ref_tokens:
+        return hyp
+
+    hyp_tokens = hyp.strip().split()
+    if len(hyp_tokens) <= len(ref_tokens):
+        return hyp.strip()
+
+    trimmed = " ".join(hyp_tokens[: len(ref_tokens)])
+    return trimmed
+
+
 def run(cfg_path: Path, emit_jsonl: bool = False) -> None:
     cfg = yaml.safe_load(cfg_path.read_text())
 
@@ -113,6 +170,14 @@ def run(cfg_path: Path, emit_jsonl: bool = False) -> None:
     details_f = details_path.open("w") if emit_jsonl else None
 
     summary_rows: List[Dict[str, Any]] = []
+
+    max_chunk_seconds = cfg.get("max_chunk_seconds")
+    if max_chunk_seconds is not None:
+        max_chunk_seconds = float(max_chunk_seconds)
+        if max_chunk_seconds <= 0:
+            max_chunk_seconds = None
+    chunk_overlap_seconds = float(cfg.get("chunk_overlap_seconds", 2.0))
+    trim_to_ref_tokens = bool(cfg.get("trim_to_ref_tokens", False))
 
     for model_name in cfg.get("models", []):
         model = build_model(model_name, device)
@@ -138,12 +203,23 @@ def run(cfg_path: Path, emit_jsonl: bool = False) -> None:
 
                 # baseline
                 hyps_clean: List[str] = []
-                for wav, sr in tqdm(
-                    waves,
-                    desc=f"{model_name}/seed{seed}/clean",
-                    leave=False,
+                for idx, (wav, sr) in enumerate(
+                    tqdm(
+                        waves,
+                        desc=f"{model_name}/seed{seed}/clean",
+                        leave=False,
+                    )
                 ):
-                    hyps_clean.append(model.transcribe(wav, sr))
+                    hyp = _transcribe_full_audio(
+                        model,
+                        wav,
+                        sr,
+                        max_chunk_seconds,
+                        chunk_overlap_seconds,
+                    )
+                    hyps_clean.append(
+                        _trim_transcript(hyp, refs[idx], trim_to_ref_tokens)
+                    )
 
                 clean_scores = corpus_scores(refs, hyps_clean)
 
@@ -153,10 +229,12 @@ def run(cfg_path: Path, emit_jsonl: bool = False) -> None:
                     kwargs = _corruption_kwargs(corr_name, severity)
                     corrupted_hyps: List[str] = []
 
-                    for wav, sr in tqdm(
-                        waves,
-                        desc=f"{model_name}/seed{seed}/{corr_name}:{severity}",
-                        leave=False,
+                    for idx, (wav, sr) in enumerate(
+                        tqdm(
+                            waves,
+                            desc=f"{model_name}/seed{seed}/{corr_name}:{severity}",
+                            leave=False,
+                        )
                     ):
                         wav2 = func(
                             wav,
@@ -164,7 +242,16 @@ def run(cfg_path: Path, emit_jsonl: bool = False) -> None:
                             seed=seed,
                             **kwargs,
                         )
-                        corrupted_hyps.append(model.transcribe(wav2, sr))
+                        hyp = _transcribe_full_audio(
+                            model,
+                            wav2,
+                            sr,
+                            max_chunk_seconds,
+                            chunk_overlap_seconds,
+                        )
+                        corrupted_hyps.append(
+                            _trim_transcript(hyp, refs[idx], trim_to_ref_tokens)
+                        )
 
                     scores = corpus_scores(refs, corrupted_hyps)
 
@@ -198,6 +285,11 @@ def run(cfg_path: Path, emit_jsonl: bool = False) -> None:
                             "cer_delta_vs_clean": scores.cer - clean_scores.cer,
                         }
                     )
+
+                    # Save checkpoint after each corruption completes
+                    checkpoint = pd.DataFrame(summary_rows)
+                    checkpoint_path = results_dir / "per_seed_checkpoint.csv"
+                    checkpoint.to_csv(checkpoint_path, index=False)
         finally:
             model.close()
 

@@ -1,0 +1,32 @@
+# Self-curated dataset robustness evaluation
+# Dataset: 20 conversational Singlish audio files from TikTok/Instagram (test1-test20.mp3)
+# Audio types: podcast, multispeaker, interview, street vlog, background music, outdoor recording, conversation, varying volumes
+# Audio is chunked into 28-second segments with 2-second overlap
+# Transcripts are trimmed to match reference token count (first ~30s of audio only)
+# Ground truth transcripts manually created for first 30 seconds of each file
+dataset_manifest: "data/manifests/self_curated.jsonl"
+dataset_audio_dir: "data/robustness/audio"
+text_field: "text"
+results_dir: "results/self_curated"
+seeds: [13, 17, 23]
+models:
+  - meralion-2-10b
+  - meralion-2-3b
+  - whisper-small
+
+# Audio processing settings
+max_chunk_seconds: 28        # Maximum chunk size for long audio files
+chunk_overlap_seconds: 2     # Overlap between consecutive chunks
+trim_to_ref_tokens: true     # Trim hypothesis to reference token count (ensures evaluation on first ~30s only)
+
+corruptions:
+  none: [0]
+  noise_snr_db: [30, 20, 10]
+  speed: [0.9, 0.8, 1.1]
+  pitch_semitones: [-2, 2, 4]
+  reverb_decay: [0.2, 0.5, 0.8]
+  clipping_ratio: [0.98, 0.9, 0.8]
+
+bootstrap:
+  n_samples: 1000
+  alpha: 0.05

@@ -215,3 +215,9 @@ data/NSC/
 
 # Experiment artefacts (comment out if you want to track results)
 # results/
+
+# Internal planning documents
+docs/*.md
+!docs/guardrails-testing-plan.md
+!docs/self-curated-evaluation-plan.md
+

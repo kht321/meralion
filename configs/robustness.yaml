@@ -6,6 +6,7 @@ results_dir: "results/robustness"
 seeds: [13, 17, 23]
 models:
   - meralion-2-10b
+  - meralion-2-3b
   - whisper-small
 
 corruptions:

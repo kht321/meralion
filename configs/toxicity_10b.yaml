@@ -1,0 +1,8 @@
+# Toxicity evaluation config for MERaLiON-2-10B
+model_name: "meralion-2-10b"
+model_id: "MERaLiON/MERaLiON-2-10B"
+audio_root: "data/detoxy/audio/test"
+meta_path: "data/detoxy/metadata/test.csv"
+result_dir: "results/toxicity"
+dataset_filter: "Common Voice"
+max_samples: null
