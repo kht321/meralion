@@ -14,6 +14,7 @@ from .models.whisper import Whisper
 
 ALIASES = {
     "meralion-2-10b": "MERaLiON/MERaLiON-2-10B",
+    "meralion-2-3b": "MERaLiON/MERaLiON-2-3B",
     "whisper-small": "openai/whisper-small",
 }
 
@@ -22,6 +23,8 @@ def build_model(name: str, device: Device):
     key = name.lower()
     if key in {"meralion", "meralion-2-10b"}:
         return MERaLiON(ALIASES["meralion-2-10b"], device)
+    if key == "meralion-2-3b":
+        return MERaLiON(ALIASES["meralion-2-3b"], device)
     if key in {"whisper", "whisper-small"}:
         return Whisper(ALIASES["whisper-small"], device)
 

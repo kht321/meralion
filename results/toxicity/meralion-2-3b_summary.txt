@@ -1,0 +1,17 @@
+TOXICITY EVALUATION RESULTS - MERALION-2-3B\n============================================================\nCorpus WER: 0.3332\nCorpus CER: 0.4147\nValid utterances: 1733/1733\n\n\nBERT_TOX Classification Report:\n              precision    recall  f1-score   support
+
+   Non-toxic       0.86      0.86      0.86      1300
+       Toxic       0.59      0.59      0.59       433
+
+    accuracy                           0.79      1733
+   macro avg       0.73      0.72      0.73      1733
+weighted avg       0.79      0.79      0.79      1733
+\n\nDETOXY_TOX Classification Report:\n              precision    recall  f1-score   support
+
+   Non-toxic       0.86      0.86      0.86      1300
+       Toxic       0.59      0.59      0.59       433
+
+    accuracy                           0.79      1733
+   macro avg       0.73      0.72      0.73      1733
+weighted avg       0.79      0.79      0.79      1733
+\n
