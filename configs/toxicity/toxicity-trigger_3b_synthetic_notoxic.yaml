@@ -1,0 +1,11 @@
+# Toxicity trigger evaluation config for MERaLiON-2-3B
+# On synthetic detoxy audio, using NO_TOXIC_TRANSCRIBE_PROMPT
+model_name: "meralion-2-3b"
+model_id: "MERaLiON/MERaLiON-2-3B"
+audio_root: "data/detoxy/synthetic_audio/trigger_test"
+meta_path: "data/detoxy/metadata/trigger_test.csv"
+result_dir: "results/toxicity"
+dataset_filter: "Common Voice"  # Only evaluate Common Voice samples
+input_type: "audio"  # "audio" or "text"
+no_toxic: true  # If true, use NO_TOXIC_TRANSCRIBE_PROMPT for transcription
+max_samples: null  # Set to a number to limit samples, null for all
