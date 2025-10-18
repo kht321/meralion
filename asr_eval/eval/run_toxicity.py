@@ -65,17 +65,21 @@ def find_audio_file(root: str, dataset: str, fname: str) -> str:
     raise FileNotFoundError(f"Audio not found for {fname} under {root}")
 
 
-def clean_response(text):
-    """Remove 'model' prefix and speaker tags, but do NOT remove square brackets. Normalize whitespace/case."""
-    text = re.sub(r"^(model\s*<[^>]+>:|model\s+speaker\s*\d+\s*:?|user\s+model\s*:?)", "", 
-                  text, flags=re.IGNORECASE)
-    text = text.strip()
-    # Remove all punctuation (including square brackets)
-    text = re.sub(rf"[{re.escape(string.punctuation)}]", "", text)
-    text = text.lower()
+def clean_response(text: str) -> str:
+    if not isinstance(text, str):
+        return ""
+
+    # Remove leading "model" + optional punctuation or spaces
+    text = re.sub(r'^\s*model[\s:>,-]*', '', text, flags=re.IGNORECASE)
+
+    # Remove all punctuation EXCEPT square brackets
+    punct_to_remove = string.punctuation.replace('[', '').replace(']', '')
+    text = re.sub(f"[{re.escape(punct_to_remove)}]", "", text)
+
+    # Lowercase and normalize whitespace
+    text = text.lower().strip()
     text = re.sub(r'\s+', ' ', text)
     return text
-
 
 def extract_toxicity_decision(response):
     """Extract binary decision (0/1) from toxicity classification response."""
