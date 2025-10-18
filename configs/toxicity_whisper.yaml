@@ -1,8 +1,0 @@
-# Toxicity evaluation config for Whisper-small
-model_name: "whisper-small"
-model_id: "openai/whisper-small"
-audio_root: "data/detoxy/audio/test"
-meta_path: "data/detoxy/metadata/test.csv"
-result_dir: "results/toxicity"
-dataset_filter: "Common Voice"
-max_samples: null
