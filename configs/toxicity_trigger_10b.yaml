@@ -1,8 +1,0 @@
-# Toxicity trigger evaluation config for MERaLiON-2-10B
-model_name: "meralion-2-10b"
-model_id: "MERaLiON/MERaLiON-2-10B"
-audio_root: "data/detoxy/audio/trigger_test"
-meta_path: "data/detoxy/metadata/trigger_test.csv"
-result_dir: "results/toxicity"
-dataset_filter: "Common Voice"  # Only evaluate Common Voice samples
-max_samples: null  # Set to a number to limit samples, null for all
