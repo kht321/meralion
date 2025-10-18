@@ -1,0 +1,10 @@
+# Toxicity trigger evaluation config for Whisper-small
+# On detoxy audio, using TRANSCRIBE_PROMPT
+model_name: "whisper-small"
+model_id: "openai/whisper-small"
+audio_root: "data/detoxy/audio/test"
+meta_path: "data/detoxy/metadata/test.csv"
+result_dir: "results/toxicity"
+dataset_filter: "Common Voice"  # Only evaluate Common Voice samples
+input_key: "audio"
+max_samples: null  # Set to a number to limit samples, null for all

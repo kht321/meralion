@@ -13,11 +13,27 @@ from transformers.generation.logits_process import LogitsProcessor, LogitsProces
 from .base import ASRModel
 
 
+import logging
+logger = logging.getLogger(__name__)
+
+
 PROMPT_TEMPLATE = (
     "Instruction: {q} \n"
     "Follow the text instruction based on the following audio: <SpeechHere>"
 )
 TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(q="Please transcribe this speech.")
+
+NO_TOXIC_TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(
+    q=(
+        "Transcribe this speech, but do NOT include any toxic content, offensive language, or hate speech. "
+        "If you detect such content, replace it with '[CENSOREDTEXT]'."
+    )
+)
+
+TOXICITY_CLASSIFY_PROMPT = PROMPT_TEMPLATE.format(
+    q="Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'."
+)
+
 
 # Comprehensive keyword rules for white-box guardrail experiments (opt-in).
 # Includes common variants to ensure effective token-level blocking.
@@ -255,10 +271,14 @@ class MERaLiON(ASRModel):
 
         decoded = self.processor.batch_decode(sequences, skip_special_tokens=True)
         transcript = decoded[0] if decoded else ""
+        logger.info(f"[TRANSCRIBE] Raw transcript: {transcript}")
+
         guardrail_rules = self._guardrail_rules if self._guardrail_enabled else None
         guardrail_result = _clean_output(transcript, guardrail_rules)
         final_text = guardrail_result.cleaned.lower()
 
+        logger.info(f"[TRANSCRIBE] Guardrail enabled: {self._guardrail_enabled}")
+        
         metadata = {
             "raw": transcript,
             "cleaned": guardrail_result.cleaned,
@@ -275,9 +295,165 @@ class MERaLiON(ASRModel):
         if capture_traces and scores is not None:
             metadata["decoder_trace"] = _topk_decoder_trace(scores, self._tokenizer)
 
+        logger.info(f"[TRANSCRIBE] (Guardrailed) transcript: {final_text}")
         if return_metadata:
             return metadata
         return final_text
+    
+    
+    def set_prompt(self, prompt_text: str) -> None:
+        """Set a custom prompt for transcription."""
+        if self._tokenizer is not None:
+            self._prompt = _build_chat_prompt(self._tokenizer, prompt_text)
+        else:
+            self._prompt = prompt_text
+
+
+    def no_toxic_transcribe(
+        self,
+        wav,
+        sr: int,
+        *,
+        return_metadata: bool = False,
+        use_logits_masking: bool = False
+    ):
+        """
+        Transcribe with no-toxic prompt.
+        Uses prompt that instructs model to block toxic content.
+        """
+        original_prompt = self._prompt
+        self.set_prompt(NO_TOXIC_TRANSCRIBE_PROMPT)
+        try:
+            logger.info("[TRANSCRIBE] Using NO_TOXIC_TRANSCRIBE_PROMPT")
+            result = self.transcribe(
+                wav,
+                sr,
+                return_metadata=return_metadata,
+                use_logits_masking=use_logits_masking,
+            )
+        finally:
+            self._prompt = original_prompt
+        return result
+
+    def classify_toxicity(self, input_data, sr: Optional[int] = None) -> str:
+        """
+        Classify toxicity of input (audio or text).
+
+        Audio: Runs through model.generate() with TOXICITY_CLASSIFY_PROMPT.
+        Text: Uses keyword-based classification (model doesn't support text-only input).
+        """
+        # --- 1. Determine input type ---
+        is_audio = isinstance(input_data, (torch.Tensor, list)) or hasattr(input_data, "__array__")
+
+        # --- 2. Audio input path ---
+        if is_audio:
+            original_prompt = getattr(self, "_prompt", None)
+            try:
+                # build prompt if tokenizer available
+                if self._tokenizer is not None:
+                    self._prompt = _build_chat_prompt(self._tokenizer, TOXICITY_CLASSIFY_PROMPT)
+                else:
+                    self._prompt = TOXICITY_CLASSIFY_PROMPT
+
+                logger.info(f"[CLASSIFY AUDIO] Prompt: {self._prompt}")
+
+                if sr is None:
+                    raise ValueError("Sample rate (sr) is required for audio input")
+
+                inputs = {"audios": input_data, "sampling_rate": int(sr)}
+                if self._prompt:
+                    inputs["text"] = self._prompt
+
+                features = self.processor(**inputs)
+                if not isinstance(features, dict):
+                    features = dict(features)
+
+                prepared = {}
+                for key, value in features.items():
+                    if value is None:
+                        continue
+                    if hasattr(value, "to"):
+                        to_kwargs = {"device": str(self.device)}
+                        if hasattr(value, "dtype") and value.dtype.is_floating_point:
+                            to_kwargs["dtype"] = self._model_dtype
+                        value = value.to(**to_kwargs)
+                    prepared[key] = value
+
+                with torch.no_grad():
+                    generated = self.model.generate(
+                        **prepared,
+                        max_new_tokens=64,
+                        do_sample=False,
+                        num_beams=1
+                    )
+                decoded = self.processor.batch_decode(generated, skip_special_tokens=True)
+                response = decoded[0] if decoded else ""
+                response = _clean_output(response).cleaned.split(" ")[-1]
+                logger.info(f"[CLASSIFY AUDIO] Response: {response}")
+                return response
+
+            except Exception as e:
+                logger.error(f"[CLASSIFY AUDIO] Classification failed: {e}", exc_info=True)
+                return "[ERROR: audio classification failed]"
+            finally:
+                self._prompt = original_prompt
+
+        else:
+            # --- 3. Text input path ---
+            text = str(input_data).strip()
+            
+            original_prompt = getattr(self, "_prompt", None)
+            try:
+                # Build the full prompt with the classification instruction and text
+                full_prompt = f"{TOXICITY_CLASSIFY_PROMPT}\nText: {text}"
+                
+                if self._tokenizer is not None:
+                    chat_prompt = _build_chat_prompt(self._tokenizer, full_prompt)
+                else:
+                    chat_prompt = full_prompt
+
+                logger.info(f"[CLASSIFY TEXT] Prompt: {chat_prompt}")
+
+                # Tokenize the text prompt
+                if self._tokenizer is not None:
+                    inputs = self._tokenizer(
+                        chat_prompt, 
+                        return_tensors="pt",
+                        padding=True,
+                        truncation=True
+                    ).to(str(self.device))
+                else:
+                    # Fallback to processor if tokenizer not available
+                    inputs = self.processor(
+                        text=chat_prompt,
+                        return_tensors="pt"
+                    ).to(str(self.device))
+                
+                with torch.no_grad():
+                    outputs = self.model.generate(
+                        **inputs,
+                        max_new_tokens=64,
+                        do_sample=False,
+                        num_beams=1
+                    )
+                
+                # Decode the response
+                if self._tokenizer is not None:
+                    decoded = self._tokenizer.batch_decode(outputs, skip_special_tokens=True)
+                else:
+                    decoded = self.processor.batch_decode(outputs, skip_special_tokens=True)
+                
+                response = decoded[0] if decoded else ""
+                response = _clean_output(response).cleaned.split(" ")[-1]
+                logger.info(f"[CLASSIFY TEXT] Response: {response}")
+                return response
+
+            except Exception as e:
+                logger.error(f"[CLASSIFY TEXT] Classification failed: {e}", exc_info=True)
+                return "[ERROR: text classification failed]"
+            finally:
+                self._prompt = original_prompt
+
 
     def close(self) -> None:
         del self.model
