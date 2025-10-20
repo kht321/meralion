@@ -71,24 +71,24 @@ def plot_visualizations(df_summary, output_dir):
     # --- Plot 3: Toxicity Classification F1 ---
     df_f1 = df_summary[~df_summary["Model"].str.lower().str.contains("whisper")]
     fig, axes = plt.subplots(2, 3, figsize=(18, 12), sharey=True)
-    axes = axes.flatten()
     f1_types = ["F1 Toxic", "F1 Non-Toxic"]
     datasets_order = ["Test", "Trigger Test", "Self-curated"]
-    for i, (f1_col, dataset) in enumerate(
-        [(f, d) for d in datasets_order for f in f1_types]
-    ):
-        ax = axes[i]
-        subset = df_f1[df_f1["Dataset"] == dataset]
-        sns.barplot(data=subset, x="Model", y=f1_col, hue="Input Type", ax=ax)
-        ax.set_ylim(0, 1)
-        ax.set_title(f"{dataset} – {f1_col[3:]}")
-        ax.set_xlabel(" ")
-        ax.set_ylabel("F1")
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center",
-               ncol=len(labels), bbox_to_anchor=(0.5, 0.05))
-    for ax in axes:
-        ax.get_legend().remove()
+
+    for row, f1_col in enumerate(f1_types):
+        for col, dataset in enumerate(datasets_order):
+            ax = axes[row, col]
+            subset = df_f1[df_f1["Dataset"] == dataset]
+            sns.barplot(data=subset, x="Model", y=f1_col, hue="Input Type", ax=ax)
+            ax.set_ylim(0, 1)
+            ax.set_title(f"{dataset} – {f1_col[3:]}")
+            ax.set_xlabel(" ")
+            ax.set_ylabel("F1")
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=len(labels), bbox_to_anchor=(0.5, 0.05))
+    for ax_row in axes:
+        for ax in ax_row:
+            ax.get_legend().remove()
     plt.suptitle("Toxicity Classification F1 Score")
     plt.tight_layout(rect=[0, 0.08, 1, 1])
     plt.savefig(os.path.join(output_dir, "classification_f1.png"), bbox_inches="tight")
