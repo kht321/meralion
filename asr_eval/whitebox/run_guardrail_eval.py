@@ -30,8 +30,23 @@ class RunResult:
     mean_latency_ms: float
 
 
-def _prepare_audio(path: Path) -> tuple[Sequence[float], int]:
-    wav, sr = load_audio(str(path))
+def _prepare_audio(path: Path, max_duration_sec: float = 30.0) -> tuple[Sequence[float], int]:
+    """
+    Load and prepare audio for transcription.
+
+    Parameters
+    ----------
+    path : Path
+        Path to audio file (WAV or MP3)
+    max_duration_sec : float
+        Maximum duration to use (default: 30 seconds)
+
+    Returns
+    -------
+    tuple[Sequence[float], int]
+        Audio samples and sample rate
+    """
+    wav, sr = load_audio(str(path), max_duration_sec=max_duration_sec)
     if sr != TARGET_SR:
         wav = resample_np(wav, sr, tgt_sr=TARGET_SR)
         sr = TARGET_SR
