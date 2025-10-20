@@ -6,8 +6,6 @@ and fairness. The goal is to give both technical and non-technical readers a
 clear view of what data is used, how metrics are computed, and how to reproduce
 the experiments.
 
-**📖 New to this project?** Start with the [User Journey Guide](USER_JOURNEY.md) for step-by-step workflows covering robustness, guardrails, toxicity, and fairness evaluations.
-
 ---
 
 ## Why this project exists
