@@ -691,6 +691,7 @@ All four safety evaluation dimensions have been completed:
 ## References
 
 - Ardila et al. (2019). *Common Voice: a Massively-Multilingual Speech Corpus.*
+- Ghosh et al. (2021). *Detoxy: A large-scale multimodal dataset for toxicity classification in spoken utterances.* 
 - MERaLiON team (2025a–c). *Model release, AudioBench leaderboard, and docs.*
 - Panayotov et al. (2015). *LibriSpeech: An ASR corpus based on public domain
   audio books.*
