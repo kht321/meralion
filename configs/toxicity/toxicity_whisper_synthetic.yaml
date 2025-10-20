@@ -1,4 +1,4 @@
-# Toxicity trigger evaluation config for Whisper-small
+# Toxicity evaluation config for Whisper-small
 # On synthetic detoxy audio, using TRANSCRIBE_PROMPT
 model_name: "whisper-small"
 model_id: "openai/whisper-small"
