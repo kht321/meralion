@@ -599,13 +599,13 @@ The models were evaluated using the following metrics:
 ### Toxicity Highlights and Visualizations
 
 ![Transcription WER/CER](results/toxicity/figures/transcription_wer_cer.png)
-*Figure 5: Average WER and CER across datasets and models. All three models transcribe synthetic audio more accurately than real speech. Performance drops sharply for profanity-rich local utterances, with MERaLION models outperforming Whisper-small overall.
+*Figure 5: Average WER and CER across datasets and models. All three models transcribe synthetic audio more accurately than real speech. Performance drops sharply for profanity-rich local utterances, with MERaLION models outperforming Whisper-small overall.*
 
 ![Transcription Block Count](results/toxicity/figures/transcription_blocks.png)
-*Figure 6: Total number of [CENSOREDTEXT] tokens generated with the No Toxic Prompt. MERaLION-2-10B demonstrates higher sensitivity to toxic content, especially in synthetic audio, while MERaLION-2-3B shows limited filtering capability.
+*Figure 6: Total number of [CENSOREDTEXT] tokens generated with the No Toxic Prompt. MERaLION-2-10B demonstrates higher sensitivity to toxic content, especially in synthetic audio, while MERaLION-2-3B shows limited filtering capability. WER/CER were not significantly affected when No Toxic Prompt is used.*
 
 ![Toxicity Classification Accuracy](results/toxicity/figures/classification_accuracy.png)
-*Figure 7: Toxicity classification accuracy with the Classification Prompt. MERaLION-2-10B achieves the highest accuracy, indicating an ability to detect toxicity from tonal cues in audio. MERaLION-2-3B performs comparably only on text inputs.
+*Figure 7: Toxicity classification accuracy with the Classification Prompt. MERaLION-2-10B achieves the highest accuracy, indicating an ability to detect toxicity from tonal cues in audio. MERaLION-2-3B performs comparably only on text inputs.*
 
 ![Toxicity Classification F1 Score](results/toxicity/figures/classification_f1.png)
 *Figure 8: F1 scores for toxic and non-toxic with the Classification Prompt. The low F1-toxic scores are due to false positives, especially for the trigger test samples. This means that MERaLION models tend to overreact on toxicity as long as offensive-sounding trigger words exist, and has limited ability in understanding the connotation of whole sentences.*
@@ -662,7 +662,7 @@ The observed disparities may be confounded by:
 ### Visualization
 
 ![Demographic Disparity](results/fairness/demographic_disparity.png)
-*Figure: WER by demographic group. Left: Gender gap of 4.6 pp (female speakers worse). Right: Racial gap of 20.8 pp showing significant bias (Chinese speakers dramatically outperform Malay and Indian speakers).*
+*Figure 9: WER by demographic group. Left: Gender gap of 4.6 pp (female speakers worse). Right: Racial gap of 20.8 pp showing significant bias (Chinese speakers dramatically outperform Malay and Indian speakers).*
 
 Full per-utterance results: [results/fairness/meralion-2-3b_seed0_per_utt.csv](results/fairness/meralion-2-3b_seed0_per_utt.csv)
 
@@ -676,7 +676,7 @@ All four safety evaluation dimensions have been completed:
 |------------|--------|-------------|
 | **Robustness** | ✅ Complete | MERaLiON shows excellent robustness (avg +0.3-0.5 pp degradation); Whisper catastrophically fails on reverb (+77.6 pp) |
 | **Guardrails** | ✅ Complete | 22.5% blocking rate; Layer 2 (post-processing) 3.5× more effective than Layer 1 (logit masking) |
-| **Toxicity** | ✅ Complete | Whisper achieves best recall (0.81) but worst precision (0.51); MERaLiON balances both (F1 0.59) |
+| **Toxicity** | ✅ Complete | MERaLION-2-10B achieves the best performance in blocking and classifying non-toxic content (90% F1 for non-toxic content). Toxic detection remains challenging with F1-toxic as low as 0–58% on trigger or profanity-rich samples. |
 | **Fairness** | ✅ Complete | Significant racial bias detected: 20.8 pp gap (Chinese 1.6% vs Indian 22.4% WER); Gender gap: 4.6 pp |
 
 **Next steps:**
