@@ -30,6 +30,26 @@ with results documented below.
 
 ---
 
+## Quick Start: What Can I Do?
+
+### For Researchers
+- **Evaluate model robustness** under realistic acoustic conditions (noise, speed, reverb)
+- **Test guardrail effectiveness** using white-box logit masking + post-processing
+- **Measure toxicity detection** rates across harmful/benign content
+- **Analyze fairness** across demographic groups (gender, race, age)
+
+### For Developers
+- **Integrate MP3 support** into your ASR pipeline (auto-converts to 16kHz WAV)
+- **Add real-time guardrails** using logit-level token masking
+- **Deploy defense-in-depth** with Layer 1 (logit) + Layer 2 (regex) filtering
+
+### For Auditors
+- **Reproduce evaluation results** using tracked configs and deterministic seeds
+- **Inspect per-sample transcripts** in detailed JSONL logs
+- **Review visualizations** for pass-through rates, latency, layer effectiveness
+
+---
+
 ## Repository tour
 
 ```
