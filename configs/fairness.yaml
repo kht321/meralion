@@ -1,0 +1,26 @@
+# Run with: python -m asr_eval.eval.run_fairness --config configs/fairness.yaml
+
+dataset_manifest: data/manifests/fairness_manifest.jsonl
+
+dataset_audio_dir: .
+
+text_field: text
+
+results_dir: results/fairness
+
+models:
+  - meralion-2-3b
+
+group_by:
+  - Gender
+  - Age
+  - Race
+
+bootstrap:
+  n_samples: 1000
+  alpha: 0.05
+
+seeds: [0]
+
+max_chunk_seconds: 30
+chunk_overlap_seconds: 2.0
