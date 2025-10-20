@@ -1,5 +1,6 @@
 """
 Toxicity evaluation for ASR models (config-based, multi-model)
+For detoxy datasets with audio files and text references.
 Supports MERaLiON-2-10B, MERaLiON-2-3B, and Whisper-small.
 """
 

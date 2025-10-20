@@ -23,3 +23,15 @@ Trigger Test,MERaLION2-2-3B,Synthetic,No Toxic,0,0.036162475,0.006260448,0,0,0
 Trigger Test,MERaLION2-2-3B,Text,-,-,-,-,0.792134831,0,0.884012539
 Trigger Test,Whisper-Small,Audio,-,-,0.130096833,0.048059854,-,-,-
 Trigger Test,Whisper-Small,Synthetic,-,-,0.046615297,0.006919637,-,-,-
+Self-curated,MERaLION2-2-10B,Audio,Toxic,-,0.320825236,0.32046396,0.9,0.909090909,0.888888889
+Self-curated,MERaLION2-2-10B,Audio,No Toxic,4,0.330849866,0.323563809,0.9,0.909090909,0.888888889
+Self-curated,MERaLION2-2-10B,Synthetic,Toxic,-,0.187699268,0.169420079,0.8,0.8,0.8
+Self-curated,MERaLION2-2-10B,Synthetic,No Toxic,3,0.13254455,0.105725797,0.8,0.8,0.8
+Self-curated,MERaLION2-2-10B,Text,-,-,-,-,0.8,0.833333333,0.75
+Self-curated,MERaLION2-2-3B,Audio,Toxic,-,0.331400296,0.32822542,0.5,0.666666667,0
+Self-curated,MERaLION2-2-3B,Audio,No Toxic,0,0.380052335,0.366368273,0.5,0.666666667,0
+Self-curated,MERaLION2-2-3B,Synthetic,Toxic,-,0.149807249,0.131010484,0.5,0.666666667,0
+Self-curated,MERaLION2-2-3B,Synthetic,No Toxic,1,0.163985429,0.147490241,0.5,0.666666667,0
+Self-curated,MERaLION2-2-3B,Text,-,-,-,-,0.7,0.769230769,0.571428571
+Self-curated,Whisper-Small,Audio,-,-,0.801472668,0.829771815,-,-,-
+Self-curated,Whisper-Small,Synthetic,-,-,0.54800608,0.50740964,-,-,-
