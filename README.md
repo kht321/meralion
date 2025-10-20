@@ -6,6 +6,8 @@ and fairness. The goal is to give both technical and non-technical readers a
 clear view of what data is used, how metrics are computed, and how to reproduce
 the experiments.
 
+**📖 New to this project?** Start with the [User Journey Guide](USER_JOURNEY.md) for step-by-step workflows covering robustness, guardrails, toxicity, and fairness evaluations.
+
 ---
 
 ## Why this project exists
@@ -549,6 +551,11 @@ The observed disparities may be confounded by:
 - **Sample size:** Small n (5-10 per group) limits statistical power
 
 **Recommendation:** Expand evaluation to balanced lockbox test set controlling for device, domain, and SNR to isolate true demographic effects from acoustic confounds.
+
+### Visualization
+
+![Demographic Disparity](results/fairness/demographic_disparity.png)
+*Figure: WER by demographic group. Left: Gender gap of 4.6 pp (female speakers worse). Right: Racial gap of 20.8 pp showing significant bias (Chinese speakers dramatically outperform Malay and Indian speakers).*
 
 Full per-utterance results: [results/fairness/meralion-2-3b_seed0_per_utt.csv](results/fairness/meralion-2-3b_seed0_per_utt.csv)
 
