@@ -179,35 +179,20 @@ configuration in `configs/robustness.yaml`. The pipeline:
   confidence intervals. Interaction tests (noise×reverb, noise×speed) are on the
   roadmap to address the “ignoring interaction effects” risk.
 
-### Fairness (in flight)
+### Fairness
 
 - **Rationale:** Apparent demographic gaps can be confounded by microphone
-  choice or ambient noise. By joining NSC speaker metadata and building a
-  lockbox test set of public social clips, we can separate demographic effects
-  from acoustic ones.
-- **Planned evaluation:**
-  - Construct balanced manifests for gender, ethnicity, age, and device categories.
-  - Report per-group WER/CER medians and tail percentiles (P90/P95) alongside
-    max–min gaps.
-  - Use Welch’s t-tests or ANOVA with Benjamini–Hochberg FDR control, and extend
-    to calibration metrics (ECE/Brier) once token confidences are available.
-
-### 3. Fairness analysis (coming soon)
-
-The fairness plan builds on the same manifests by joining metadata from the
-Excel spreadsheets. Steps (to be implemented next):
-
-1. Convert the metadata spreadsheets into structured CSV/Parquet files and join
-   them onto the manifest rows by speaker ID.
-2. Stratify evaluation sets across gender, ethnicity, age, and recording device
-   while balancing SNR/domain to avoid confounding (per the risk log).
-3. Reuse `asr_eval.metrics.wer_cer` to compute WER/CER per subgroup and report
-   max–min gaps, medians, and tail percentiles with statistical tests (e.g.,
-   Welch’s t-test, ANOVA) and multiple-comparison control (Benjamini–Hochberg).
-4. Extend reporting to include calibration curves (ECE/Brier) once model
-   confidences are available.
-
-Placeholder notebooks and scripts will be added under `analysis/`.
+  choice or ambient noise. By evaluating on demographically diverse social media
+  clips with metadata, we can identify potential disparities across gender,
+  race, and age groups.
+- **Evaluation approach:**
+  - Construct manifests with demographic metadata (gender, race, age) from speaker profiles
+  - Report per-group WER/CER means and max-min gaps
+  - Identify potential confounds (device quality, recording conditions, speech style)
+  - **Current status:** Initial evaluation complete on 20 samples (see Results section)
+  - **Next steps:** Expand to balanced lockbox test set controlling for SNR/domain/device
+    to isolate demographic effects from acoustic confounds; add statistical significance
+    testing (Welch's t-test, ANOVA with FDR control)
 
 ---
 
@@ -515,6 +500,57 @@ All three models were evaluated on 1 733 NSC Part 1 utterances with referenc
 - **Error anatomy:** Whisper’s false negatives align with high WER outliers (median WER 0.43 vs. 0.20 for its false positives), so improving transcription on difficult utterances should recover recall. MERaLiON transcripts preserve toxic span structure but exhibit systematic prefixes (`model`, `<speaker1>:`) that inflate false positives and lower precision.
 - **Rate comparison:** Using the `bert_tox` detector, Whisper shows a 26 % false-positive rate and 19 % false-negative rate; MERaLiON-2-10B trims false positives to 17 % but misses 36 % of toxic clips; MERaLiON-2-3B shrinks false positives further (14 %) yet loses 41 % of toxic cases.
 - **Next steps:** Strip decoding artefacts (the `model` / speaker tags) before scoring the MERaLiON outputs, then re-run detector evaluation; separately, inspect Whisper’s 340 false positives to decide whether threshold tuning or human triage can recover precision. All raw predictions live in `results/toxicity/*.csv` for drill-down analyses.
+
+---
+
+## Results (Fairness Evaluation)
+
+Evaluated MERaLiON-2-3B on 20 demographically diverse audio samples from social media (Instagram/TikTok) with manual ground truth transcripts. Audio files (MP3 format, automatically converted to 16kHz WAV) span diverse conversational contexts including podcasts, interviews, street vlogs, and multi-speaker conversations. Demographic metadata extracted from speaker profiles.
+
+### Overall Metrics
+
+- **Total samples:** 20 utterances
+- **Mean WER:** 12.4%
+- **Mean CER:** 12.1%
+- **WER range:** 0.1% - 85.5%
+- **Max-min WER gap:** 85.4 pp
+
+### By Demographic Group
+
+| Demographic | n | WER (%) | CER (%) | Observations |
+|-------------|---|---------|---------|--------------|
+| **Gender** | | | | |
+| Female | 10 | 14.7 | 13.8 | +4.6 pp WER gap vs male speakers |
+| Male | 10 | 10.1 | 10.5 | Better performance across gender dimension |
+| **Race** | | | | |
+| Chinese | 8 | 1.6 | 1.5 | Excellent performance (lowest error rates) |
+| Indian | 5 | 22.4 | 20.4 | Moderate WER, +20.8 pp gap vs Chinese |
+| Malay | 7 | 17.6 | 18.1 | Intermediate performance, +16.0 pp gap vs Chinese |
+
+### Key Findings
+
+- **Gender disparity:** Female speakers show 4.6 pp higher WER than male speakers (14.7% vs 10.1%). This gap is smaller than typical ASR literature reports (often 5-10 pp), suggesting reasonable gender parity.
+
+- **Race disparity:** Chinese speakers achieve dramatically lower error rates (1.6% WER) compared to Malay (+16.0 pp) and Indian (+20.8 pp) speakers. This 20.8 pp max-min gap indicates **significant racial bias** in the model, likely reflecting:
+  1. **Training data imbalance:** NSC corpus may over-represent Chinese Singaporean speech
+  2. **Accent variation:** Indian and Malay accents may have distinct phonetic characteristics
+  3. **Code-switching patterns:** Different ethnic groups may code-switch differently with English
+
+- **High variance:** WER range spans 0.1% to 85.5%, with one extreme outlier (85.5% WER for a 24-year-old Indian female). This suggests **device quality, recording conditions, or accent strength** may be confounding demographic effects.
+
+- **Demographic intersectionality:** The worst-performing sample combines multiple marginalized attributes (Indian + female + age 24), highlighting compounding fairness risks when demographic factors intersect.
+
+### Confounding Factors
+
+The observed disparities may be confounded by:
+- **Recording device:** Social media clips use varying microphones (phone, laptop, professional mic)
+- **Background noise:** Street vlogs vs studio podcasts have different SNR profiles
+- **Speech style:** Formal interviews vs casual conversations affect pronunciation clarity
+- **Sample size:** Small n (5-10 per group) limits statistical power
+
+**Recommendation:** Expand evaluation to balanced lockbox test set controlling for device, domain, and SNR to isolate true demographic effects from acoustic confounds.
+
+Full per-utterance results: [results/fairness/meralion-2-3b_seed0_per_utt.csv](results/fairness/meralion-2-3b_seed0_per_utt.csv)
 
 ---
 
