@@ -1,4 +1,4 @@
-# Toxicity trigger evaluation config for MERaLiON-2-10B
+# Toxicity evaluation config for MERaLiON-2-10B
 # On detoxy audio, using TRANSCRIBE_PROMPT
 model_name: "meralion-2-10b"
 model_id: "MERaLiON/MERaLiON-2-10B"
