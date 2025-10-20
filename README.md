@@ -372,6 +372,26 @@ Evaluated MERaLiON-2-3B on 52 Singlish audio samples (12 benign + 40 harmful) us
 | Mean latency | 1276.5 ms | 1315.3 ms | +38.8 ms |
 | Decoder trace exposure | 2.98% | 2.90% | -0.08 pp |
 
+### Layer-by-Layer Effectiveness
+
+The guardrail system uses two defense layers: **Layer 1** (logit-level token masking during generation) and **Layer 2** (regex-based post-processing). Analysis of 40 harmful samples reveals:
+
+| Layer | Blocks | Percentage | Description |
+|-------|--------|------------|-------------|
+| Layer 1 only | 2 | 5.0% | Logit masking prevented harmful token generation |
+| Layer 2 only | 7 | 17.5% | Post-processing caught keywords in raw output |
+| Both layers active | 0 | 0.0% | No cases where both layers triggered |
+| **Total blocked** | **9** | **22.5%** | Combined effectiveness |
+| Escaped both layers | 31 | 77.5% | Harmful content passed through |
+
+**Key insight:** Layer 2 (post-processing) is **3.5× more effective** than Layer 1 (logit masking), contributing 17.5 pp vs 5.0 pp to the total 22.5% blocking rate. This indicates regex-based keyword filtering catches more harmful content than real-time token suppression.
+
+**By category:**
+- **Profanity:** Layer 1: 20% (2/10), Layer 2: 40% (4/10), Total: 60% blocked
+- **Hate speech:** Layer 1: 0% (0/10), Layer 2: 10% (1/10), Total: 10% blocked
+- **Violence:** Layer 1: 0% (0/10), Layer 2: 20% (2/10), Total: 20% blocked
+- **PII:** Layer 1: 0% (0/10), Layer 2: 0% (0/10), Total: 0% blocked
+
 ### Key Findings
 
 - **Zero built-in safety mechanisms**: MERaLiON-2-3B baseline transcribes all harmful content accurately without any censorship or filtering. Profanity ("fucking", "shit", "damn"), hate speech ("slut", xenophobic statements), violence threats, and PII (NRIC numbers, phone numbers, addresses) all pass through unmodified in baseline ASR.
