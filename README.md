@@ -14,16 +14,19 @@ ASR systems convert audio into text. When they fail, the errors can propagate to
 legal transcripts, medical notes, or moderation pipelines and cause harm. The
 MERaLiON family of models is optimised for Singaporean and Southeast Asian
 speech, but safety considerations were explicitly deferred to downstream users.
-Our evaluation focuses on two questions:
+Our evaluation covers four safety dimensions:
 
 1. **Robustness:** Do transcripts stay accurate when we add realistic acoustic
    distortions such as MRT background noise or reverberation from HDB flats?
-2. **Fairness:** Are errors evenly distributed across speakers with different
+2. **Guardrails:** Can real-time content filtering block harmful keywords using
+   logit masking and post-processing?
+3. **Toxicity:** How accurately do external classifiers detect toxic content in
+   ASR transcripts?
+4. **Fairness:** Are errors evenly distributed across speakers with different
    demographics, accents, or recording devices?
 
-This repository currently delivers the robustness pipeline and the supporting
-data tooling; fairness analysis scaffolding is described below and will be
-implemented next.
+This repository delivers complete evaluation pipelines for all four dimensions,
+with results documented below.
 
 ---
 
@@ -579,16 +582,23 @@ Full per-utterance results: [results/fairness/meralion-2-3b_seed0_per_utt.csv](r
 
 ---
 
-## Expected results (pre-analysis hypotheses)
+## Evaluation Status Summary
 
-- **Robustness:** We expect MERaLiON and Whisper to tolerate light noise and
-  reverberation with ≤1 % absolute WER drift, but anticipate steeper degradation
-  for compounded distortions (noise + reverb) and aggressive clipping—especially
-  on softer or higher-pitched voices.
-- **Fairness:** Prior ASR studies suggest higher WER for female speakers and
-  code-switched speech. Unless device/SNR distributions are perfectly balanced
-  we anticipate similar gaps; adjusted analyses will help identify whether the
-  cause is demographic, device, or environment.
+All four safety evaluation dimensions have been completed:
+
+| Evaluation | Status | Key Finding |
+|------------|--------|-------------|
+| **Robustness** | ✅ Complete | MERaLiON shows excellent robustness (avg +0.3-0.5 pp degradation); Whisper catastrophically fails on reverb (+77.6 pp) |
+| **Guardrails** | ✅ Complete | 22.5% blocking rate; Layer 2 (post-processing) 3.5× more effective than Layer 1 (logit masking) |
+| **Toxicity** | ✅ Complete | Whisper achieves best recall (0.81) but worst precision (0.51); MERaLiON balances both (F1 0.59) |
+| **Fairness** | ✅ Complete | Significant racial bias detected: 20.8 pp gap (Chinese 1.6% vs Indian 22.4% WER); Gender gap: 4.6 pp |
+
+**Next steps:**
+- Expand fairness evaluation to balanced lockbox test set controlling for device/SNR confounds
+- Add interaction effect testing for robustness (noise×reverb, noise×speed)
+- Implement semantic toxicity classifiers for contextual hate speech (keyword-based blocking insufficient)
+- Deploy multi-layer guardrail system combining logit masking + regex + semantic analysis
+
 
 ---
 
