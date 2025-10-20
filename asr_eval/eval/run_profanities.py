@@ -1,6 +1,6 @@
 """
 Toxicity evaluation for ASR models (config-based, multi-model)
-For detoxy datasets with audio files and text references.
+For profanities datasets with audio files and text references.
 Supports MERaLiON-2-10B, MERaLiON-2-3B, and Whisper-small.
 """
 
@@ -39,23 +39,20 @@ logging.basicConfig(
 
 
 
-def read_csv_robust(path):
-    """Read CSV file with multiple encoding fallbacks."""
-    for enc in ("utf-8", "utf-8-sig", "cp1252", "latin-1"):
-        try:
-            return pd.read_csv(path, encoding=enc)
-        except UnicodeDecodeError:
-            continue
-    with open(path, "r", encoding="utf-8", errors="replace") as f:
-        return pd.read_csv(f)
+def read_xlsx(path):
+    """Read XLSX file using pandas.read_excel."""
+    try:
+        return pd.read_excel(path)
+    except Exception as e:
+        raise RuntimeError(f"Failed to read Excel file: {path}. Error: {e}")
 
 
-def find_audio_file(root: str, dataset: str, fname: str) -> str:
+def find_audio_file(root: str, fname: str) -> str:
     """Find audio file by trying common extensions and dataset subfolders."""
     exts = (".wav", ".mp3", ".flac", ".ogg", ".m4a")
     candidates = [os.path.join(root, f"{fname}{ext}") for ext in exts]
-    candidates += [os.path.join(root, dataset, f"{fname}{ext}") for ext in exts]
-    search_dirs = [root, os.path.join(root, dataset)]
+    candidates += [os.path.join(root, f"{fname}{ext}") for ext in exts]
+    search_dirs = [root]
     for search_dir in search_dirs:
         if not os.path.isdir(search_dir):
             continue
@@ -70,8 +67,9 @@ def clean_response(text: str) -> str:
     if not isinstance(text, str):
         return ""
 
-    # Remove leading "model" + optional punctuation or spaces
+    # Remove leading "model", speakers, and optional punctuation or spaces
     text = re.sub(r'^\s*model[\s:>,-]*', '', text, flags=re.IGNORECASE)
+    text = re.sub(r'\b(speaker1|speaker2)\b[:\s-]*', '', text, flags=re.IGNORECASE)
 
     # Remove all punctuation EXCEPT square brackets
     punct_to_remove = string.punctuation.replace('[', '').replace(']', '')
@@ -138,9 +136,9 @@ def process_audio_samples(df, model, model_id, audio_root, no_toxic):
     classification_errors = []
     
     for idx, row in tqdm(df.iterrows(), total=len(df), desc="Processing audio"):
-        fname = row["FileName"]
+        fname = row["mp3 file label"]
         try:
-            file_path = find_audio_file(audio_root, row["Dataset"], fname)
+            file_path = find_audio_file(audio_root, fname)
         except FileNotFoundError as e:
             logger.warning(f"Audio file not found: {e}")
             transcripts_clean.append("")                
@@ -256,7 +254,7 @@ def process_text_samples(df, model, model_id):
         tox_labels = []
         classification_errors = []
 
-        for idx, ref_text in enumerate(tqdm(df["text"], desc="Classifying text")):
+        for idx, ref_text in enumerate(tqdm(df["transcribed first 30s (meralion)"], desc="Classifying text")):
             logger.info(f"\n{'='*60}")
             logger.info(f"Classifying text sample {idx + 1}/{len(df)}")
 
@@ -328,7 +326,7 @@ def generate_reports(df, model_id):
     if df.get("model_tox") is None:
         return []
     
-    gold_labels = df["label2a"]
+    gold_labels = df["Toxic"]
     reports = []
     
     if is_meralion_model(model_id):
@@ -347,7 +345,7 @@ def generate_reports(df, model_id):
 def save_results(df, config_path, result_dir, model_id):
     """Save results to Excel with multiple sheets."""
     
-    output_df = df.rename(columns={"text": "ref_text", "label2a": "gold_tox"})
+    output_df = df.rename(columns={"transcribed first 30s (meralion)": "ref_text", "Toxic": "gold_tox"})
     output_columns = [
         "ref_text", "ref_clean", "pred", "gold_tox",
         "model_tox", "model_response", "blocked_count", "wer", "cer",
@@ -362,7 +360,7 @@ def save_results(df, config_path, result_dir, model_id):
         
         # Add confusion matrix and classification report sheets
         if "model_tox" in df.columns:
-            gold_labels = df["label2a"]
+            gold_labels = df["Toxic"]
             preds = df["model_tox"]
 
             if is_meralion_model(model_id) and preds.notna().any():
@@ -422,22 +420,20 @@ def main():
     model_id = cfg['model_id']
     audio_root = cfg['audio_root']
     meta_path = cfg['meta_path']
-    dataset_filter = cfg.get('dataset_filter', 'Common Voice')
     max_samples = cfg.get('max_samples')
     input_type = cfg.get('input_type', 'audio')
     no_toxic = cfg.get('no_toxic', False)
 
     # Load and filter metadata
     logger.info(f"Loading metadata from: {meta_path}")
-    df = read_csv_robust(meta_path)
-    df = df[df["Dataset"] == dataset_filter].reset_index(drop=True)
+    df = read_xlsx(meta_path)
     if max_samples:
         df = df.head(max_samples)
-    logger.info(f"Loaded {len(df)} {dataset_filter} samples")
+    logger.info(f"Loaded {len(df)} samples")
 
     # Add cleaned reference column
     df["ref_clean"] = [clean_response(ref) if isinstance(ref, str) else "" 
-                       for ref in df["text"]]
+                       for ref in df["transcribed first 30s (meralion)"]]
 
     # Load ASR model
     device = Device()

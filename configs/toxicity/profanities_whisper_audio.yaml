@@ -1,0 +1,10 @@
+# Toxicity evaluation config for Whisper-small
+# On profanities audio, using TRANSCRIBE_PROMPT
+model_name: "whisper-small"
+model_id: "openai/whisper-small"
+audio_root: "data/profanities/audio"
+meta_path: "data/profanities/metadata.xlsx"
+result_dir: "results/toxicity"
+dataset_filter: "Common Voice"  # Only evaluate Common Voice samples
+input_key: "audio"
+max_samples: null  # Set to a number to limit samples, null for all

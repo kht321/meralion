@@ -1,0 +1,84 @@
+2025-10-20 18:45:23,657 - INFO - Loading metadata from: data/profanities/metadata.xlsx
+2025-10-20 18:45:24,197 - INFO - Loaded 10 samples
+2025-10-20 18:45:24,227 - INFO - Loading meralion-2-3b from MERaLiON/MERaLiON-2-3B on cuda
+2025-10-20 18:46:08,305 - INFO - Input type: text
+2025-10-20 18:46:08,305 - INFO - MERaLiON model detected: True
+2025-10-20 18:46:08,305 - INFO - MERaLiON detected: Classifying reference text toxicity
+2025-10-20 18:46:08,306 - INFO - 
+============================================================
+2025-10-20 18:46:08,307 - INFO - Classifying text sample 1/10
+2025-10-20 18:46:08,307 - INFO - [CLASSIFY TEXT] Prompt: ["<bos><start_of_turn>user\nInstruction: Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'. \nFollow the text instruction based on the following audio: <SpeechHere>\nText: <Speaker1>: (oh) (oh) (oh), (oh), (oh) (oh). Who the fuck are you? It's me. It's me. Hi. (oh) (oh)! (oh). (oh). (oh)! (oh)! (oh) (oh)? (oh)! (oh), (oh)! (oh)? (oh). (oh), (oh). (oh) (oh!). (oh)! (oh!). (oh). (oh)? (oh) (oh!) (oh)! (oh!) (oh) (oh!), (oh)! (oh!), (oh) (oh! (oh)! (oh! (oh) (oh)).<end_of_turn>\n<start_of_turn>model\n"]
+2025-10-20 18:46:09,082 - INFO - [CLASSIFY TEXT] Response: Yes.
+2025-10-20 18:46:09,082 - INFO - [CLASSIFY TEXT] Cleaned response: yes
+2025-10-20 18:46:09,083 - INFO - [CLASSIFY TEXT] Extracted label: 1
+2025-10-20 18:46:09,083 - INFO - 
+============================================================
+2025-10-20 18:46:09,083 - INFO - Classifying text sample 2/10
+2025-10-20 18:46:09,084 - INFO - [CLASSIFY TEXT] Prompt: ["<bos><start_of_turn>user\nInstruction: Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'. \nFollow the text instruction based on the following audio: <SpeechHere>\nText: <Speaker1>: Okay, everyone. So today I'm gonna be teaching my white ass friend some Singaporean curse words/slangs. What are your thoughts? <Speaker2>: I don't want to say all these bad words. I'm scared. <Speaker1>: Okay, so the first one is Kanina. (lah) you so high. Say it, bitch. <Speaker2>: Should I say it in a Singaporean way? <Speaker1>: (uh-huh). Kanina, you so high. <Speaker2>: (oh), that was quite slang. <Speaker1>: Was that good? <Speaker2>: Yeah. <Speaker1>: I literally don't know a single person called Kanina.<end_of_turn>\n<start_of_turn>model\n"]
+2025-10-20 18:46:09,366 - INFO - [CLASSIFY TEXT] Response: Yes.
+2025-10-20 18:46:09,367 - INFO - [CLASSIFY TEXT] Cleaned response: yes
+2025-10-20 18:46:09,367 - INFO - [CLASSIFY TEXT] Extracted label: 1
+2025-10-20 18:46:09,367 - INFO - 
+============================================================
+2025-10-20 18:46:09,368 - INFO - Classifying text sample 3/10
+2025-10-20 18:46:09,368 - INFO - [CLASSIFY TEXT] Prompt: ["<bos><start_of_turn>user\nInstruction: Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'. \nFollow the text instruction based on the following audio: <SpeechHere>\nText: <Speaker1>: I hope when it's seeb hot outside there's no sheltered walkway to where you have to go. I hope even though you bounce from Tampines to Pasir Ris you still don't get a seat on the MRT. I hope right before you can say no coriander please the auntie adds it to your butt meat. I hope when you really need a trolley at a fair price you look in your wallet but it's all notes. I hope your favourite singer is finally performing in Singapore.<end_of_turn>\n<start_of_turn>model\n"]
+2025-10-20 18:46:09,605 - INFO - [CLASSIFY TEXT] Response: Yes.
+2025-10-20 18:46:09,605 - INFO - [CLASSIFY TEXT] Cleaned response: yes
+2025-10-20 18:46:09,606 - INFO - [CLASSIFY TEXT] Extracted label: 1
+2025-10-20 18:46:09,606 - INFO - 
+============================================================
+2025-10-20 18:46:09,606 - INFO - Classifying text sample 4/10
+2025-10-20 18:46:09,606 - INFO - [CLASSIFY TEXT] Prompt: ["<bos><start_of_turn>user\nInstruction: Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'. \nFollow the text instruction based on the following audio: <SpeechHere>\nText: <Speaker1>: Go go to hell, (lah) this person bastard, you know you, I ask for a plastic bag, you must put the thing inside the plastic bag for me, right? He, she never, she just put the plastic bag throw the plastic bag out on the table. I also throw to her (lor) ya, she throw the plastic bag. After that, I say I don't want plastic bag. After that I throw back to her. Then she say why throw? (err), starting you throw the plastic bag towards me, (err), you throw the plastic bag toward me. Starting you throw first, (leh) we, we, we go home, go home. Everything go home first, go home first. This one difficult to open the plastic bag.<end_of_turn>\n<start_of_turn>model\n"]
+2025-10-20 18:46:09,986 - INFO - [CLASSIFY TEXT] Response: Yes.
+2025-10-20 18:46:09,987 - INFO - [CLASSIFY TEXT] Cleaned response: yes
+2025-10-20 18:46:09,988 - INFO - [CLASSIFY TEXT] Extracted label: 1
+2025-10-20 18:46:09,988 - INFO - 
+============================================================
+2025-10-20 18:46:09,988 - INFO - Classifying text sample 5/10
+2025-10-20 18:46:09,988 - INFO - [CLASSIFY TEXT] Prompt: ["<bos><start_of_turn>user\nInstruction: Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'. \nFollow the text instruction based on the following audio: <SpeechHere>\nText: <Speaker1>: call me the CSI Fbi the way I decode these motherfuckers the way I found out every cheating scandal my ex has ever gotten into. CSI Fbi. What's good? What's good? what's good, guys? What's good is good.<end_of_turn>\n<start_of_turn>model\n"]
+2025-10-20 18:46:10,339 - INFO - [CLASSIFY TEXT] Response: Yes.
+2025-10-20 18:46:10,339 - INFO - [CLASSIFY TEXT] Cleaned response: yes
+2025-10-20 18:46:10,340 - INFO - [CLASSIFY TEXT] Extracted label: 1
+2025-10-20 18:46:10,340 - INFO - 
+============================================================
+2025-10-20 18:46:10,340 - INFO - Classifying text sample 6/10
+2025-10-20 18:46:10,340 - INFO - [CLASSIFY TEXT] Prompt: ["<bos><start_of_turn>user\nInstruction: Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'. \nFollow the text instruction based on the following audio: <SpeechHere>\nText: <Speaker1>: I do not know who this is to hear this, but do not piss off a quiet person because once that person explodes it's over for you. Once a quiet person is pissed off you are screwed. Quiet people are quiet until they can't take it anymore and once a quiet person is angry at you you fucked up big time. The scariest people in the world are quiet people because the moment they get angry at you run run that all pent up anger in them is gonna be released because of you. Never offend a quiet person. Okay, if you ever offend a quiet person you are bloody stupid.<end_of_turn>\n<start_of_turn>model\n"]
+2025-10-20 18:46:10,689 - INFO - [CLASSIFY TEXT] Response: Yes.
+2025-10-20 18:46:10,689 - INFO - [CLASSIFY TEXT] Cleaned response: yes
+2025-10-20 18:46:10,689 - INFO - [CLASSIFY TEXT] Extracted label: 1
+2025-10-20 18:46:10,690 - INFO - 
+============================================================
+2025-10-20 18:46:10,690 - INFO - Classifying text sample 7/10
+2025-10-20 18:46:10,690 - INFO - [CLASSIFY TEXT] Prompt: ["<bos><start_of_turn>user\nInstruction: Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'. \nFollow the text instruction based on the following audio: <SpeechHere>\nText: <Speaker1>: The craziest funniest thing happened to me yesterday when I went out for girls' night. We were leaving this club right and as the elevator door opened and a bunch of people exited the elevator for us to get on it to get down the building right, (um) at the back there was this guy. Instead of leaving the elevator, he paused at the door of the elevator as I was like opening it and then he looked me dead in the eyes and did this.<end_of_turn>\n<start_of_turn>model\n"]
+2025-10-20 18:46:11,048 - INFO - [CLASSIFY TEXT] Response: No.
+2025-10-20 18:46:11,049 - INFO - [CLASSIFY TEXT] Cleaned response: no
+2025-10-20 18:46:11,049 - INFO - [CLASSIFY TEXT] Extracted label: 0
+2025-10-20 18:46:11,049 - INFO - 
+============================================================
+2025-10-20 18:46:11,049 - INFO - Classifying text sample 8/10
+2025-10-20 18:46:11,049 - INFO - [CLASSIFY TEXT] Prompt: ["<bos><start_of_turn>user\nInstruction: Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'. \nFollow the text instruction based on the following audio: <SpeechHere>\nText: <Speaker1>: Shit, my crazy Singaporean mom does that just makes sense. <Speaker2>: Okay, so this one is a serious life hack. You know how sometimes there's always like (um), salespeople that will come and knock on your door and then like you have to go and look at the people and see who is it and then they kind of know that there's someone home. They know that there's some one home is because when your people is open light can pass through so it's actually bright outside. But when you put your eye over it right then it's dark so they can tell that there's someone so my Singaporean mom stuck with.<end_of_turn>\n<start_of_turn>model\n"]
+2025-10-20 18:46:11,406 - INFO - [CLASSIFY TEXT] Response: No.
+2025-10-20 18:46:11,407 - INFO - [CLASSIFY TEXT] Cleaned response: no
+2025-10-20 18:46:11,407 - INFO - [CLASSIFY TEXT] Extracted label: 0
+2025-10-20 18:46:11,407 - INFO - 
+============================================================
+2025-10-20 18:46:11,407 - INFO - Classifying text sample 9/10
+2025-10-20 18:46:11,408 - INFO - [CLASSIFY TEXT] Prompt: ["<bos><start_of_turn>user\nInstruction: Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'. \nFollow the text instruction based on the following audio: <SpeechHere>\nText: <Speaker1>: I'm gonna tell you all something very stupid that happened to me in Shanghai. I wasn't gonna tell it initially because I didn't think it was that funny, but I told it to my friends during dinner just now and they were lamaoing so hard, so I guess I will share. But anyways, my first day in Shanghai was a fuck up because when I reached the hotel lobby, I realised that I booked the hotel for the month after, so as I was frantically like rebooking and cancelling, and like trying to sort my shit out, my other friend that I was travelling with right, he was like you're taking so long. I'm just gonna order Mei Tuan, so Mei Tuan is like their like food delivery.<end_of_turn>\n<start_of_turn>model\n"]
+2025-10-20 18:46:11,738 - INFO - [CLASSIFY TEXT] Response: Yes.
+2025-10-20 18:46:11,738 - INFO - [CLASSIFY TEXT] Cleaned response: yes
+2025-10-20 18:46:11,738 - INFO - [CLASSIFY TEXT] Extracted label: 1
+2025-10-20 18:46:11,739 - INFO - 
+============================================================
+2025-10-20 18:46:11,739 - INFO - Classifying text sample 10/10
+2025-10-20 18:46:11,739 - INFO - [CLASSIFY TEXT] Prompt: ["<bos><start_of_turn>user\nInstruction: Does this speech contain toxic content, offensive language, or hate speech? Respond only 'Yes' or 'No'. \nFollow the text instruction based on the following audio: <SpeechHere>\nText: <Speaker1>: Today, my lapan manager really open his si mouth and tell me the bodohest word I ever hear in my life. You seem like you only come to work for salary. Abudun then you think I come work for what for fun, do charity, or smell your three next cup of coffee brand. Wake up your square head idea. I come here to get paid. That's it. You pay me, I work. I'm not here to find purpose in the company. I'm not hear to change the company. I'am here to do just enough to not get fired. Collect my pay. Go home. Repeat. Stop you trippin me for working from.<end_of_turn>\n<start_of_turn>model\n"]
+2025-10-20 18:46:12,101 - INFO - [CLASSIFY TEXT] Response: Yes.
+2025-10-20 18:46:12,101 - INFO - [CLASSIFY TEXT] Cleaned response: yes
+2025-10-20 18:46:12,101 - INFO - [CLASSIFY TEXT] Extracted label: 1
+2025-10-20 18:46:12,103 - INFO - 
+============================================================
+2025-10-20 18:46:12,103 - INFO - 
+Text classification complete:
+2025-10-20 18:46:12,103 - INFO - Total samples: 10
+2025-10-20 18:46:12,103 - INFO - Successful classifications: 10
+2025-10-20 18:46:12,104 - INFO - Generating classification reports...
+2025-10-20 18:46:12,201 - INFO - Saving results to: results/toxicity

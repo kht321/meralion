@@ -1,0 +1,53 @@
+2025-10-20 18:46:24,612 - INFO - Loading metadata from: data/profanities/metadata.xlsx
+2025-10-20 18:46:25,352 - INFO - Loaded 10 samples
+2025-10-20 18:46:25,386 - INFO - Loading whisper-small from openai/whisper-small on cuda
+2025-10-20 18:46:31,942 - INFO - Input type: audio
+2025-10-20 18:46:31,943 - INFO - MERaLiON model detected: False
+2025-10-20 18:46:31,945 - INFO - 
+============================================================
+2025-10-20 18:46:31,945 - INFO - Processing sample 1/10: test1
+2025-10-20 18:46:37,301 - INFO - [TRANSCRIBE] Cleaned transcript: hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey hey
+2025-10-20 18:46:37,303 - INFO - 
+============================================================
+2025-10-20 18:46:37,303 - INFO - Processing sample 2/10: test2
+2025-10-20 18:46:38,940 - INFO - [TRANSCRIBE] Cleaned transcript: okay hi everyone so today im gonna be teaching my white ass friend some singaporean curse words slash slang what are your thoughts i dont want to be saying all these bad words im scared okay so the first one is say it bitch i try to say it in a singaporean way yeah oh that was quite sleigh i literally dont know a single person called kanina
+2025-10-20 18:46:38,942 - INFO - 
+============================================================
+2025-10-20 18:46:38,942 - INFO - Processing sample 3/10: test3
+2025-10-20 18:46:40,297 - INFO - [TRANSCRIBE] Cleaned transcript: i hope when its seabed hot outside theres no sheltered walkway to where you have to go i hope even though you bounce from tamponies to passersies you still dont get a seat on the mrt i hope right before you can say no coriander please the auntie adds it to your batman i hope when you really need a trolley at fair price you look in your wallet but its on notes i hope your favourite singer is finally performing in singapore
+2025-10-20 18:46:40,299 - INFO - 
+============================================================
+2025-10-20 18:46:40,299 - INFO - Processing sample 4/10: test4
+2025-10-20 18:46:41,556 - INFO - [TRANSCRIBE] Cleaned transcript: go to hell this person bastard you know you asked for plastic bag you must put the thing inside the plastic bag for me right she never she just put the plastic bag on the table that i just throw to her yeah she throw the plastic bag after that i said i dont want plastic bag i throw it back to her then she said why throw hey starting you throw the plastic bag towards me you throw the plastic bag towards me starting you throw first we really go home go home everything go home first go home first
+2025-10-20 18:46:41,558 - INFO - 
+============================================================
+2025-10-20 18:46:41,558 - INFO - Processing sample 5/10: test5
+2025-10-20 18:46:42,155 - INFO - [TRANSCRIBE] Cleaned transcript: call me the csi fbi the way i decode this motherfucker the way i found out every cheating scandal my ex has ever gotten into csi fbi was good whats good whats good guys what is good
+2025-10-20 18:46:42,157 - INFO - 
+============================================================
+2025-10-20 18:46:42,157 - INFO - Processing sample 6/10: test6
+2025-10-20 18:46:43,678 - INFO - [TRANSCRIBE] Cleaned transcript: i do not know who needs to hear this but do not piss off a quiet person because once that persons explode is over for you once a quiet person is pissed off you are screwed quiet people are quiet until they cant take you anymore and once a quiet person is angry at you you fucked up big time the scariest people in the world are quiet people because the moment they get angry at you run run that all that pent up anger in them is gonna be released because of you never offend a quiet person okay if you ever offend a quiet person youre bloody stupid
+2025-10-20 18:46:43,681 - INFO - 
+============================================================
+2025-10-20 18:46:43,681 - INFO - Processing sample 7/10: test7
+2025-10-20 18:46:45,227 - INFO - [TRANSCRIBE] Cleaned transcript: the craziest funniest thing happened to me yesterday when i went out for girls night so we were leaving this club right and as the elevator door opened and a bunch of people exited the elevator for us to get on it to get down the building right at the back there was this guy instead of leaving the elevator he paused at the door of the elevator as i was like opening it and then he looked me day in the eyes and did this what the first happening and i thought he was just smiling at me
+2025-10-20 18:46:45,229 - INFO - 
+============================================================
+2025-10-20 18:46:45,229 - INFO - Processing sample 8/10: test8
+2025-10-20 18:46:45,523 - INFO - [TRANSCRIBE] Cleaned transcript: shit my crazy singaporean mom does that just makes sams
+2025-10-20 18:46:45,524 - INFO - 
+============================================================
+2025-10-20 18:46:45,525 - INFO - Processing sample 9/10: test9
+2025-10-20 18:46:47,507 - INFO - [TRANSCRIBE] Cleaned transcript: im gonna tell you something very stupid that happened to me in shanghai i wasnt gonna tell it initially because i didnt think it was that funny but i told it to my friends during dinner just now and they were lmaoing so hard so i guess i will share but anyways my first day of shanghai was a fk up because when i reached the hotel lobby i realized that i booked the hotel for the bun after so as i was frantically like rebooking and cancelling and like trying to sort my sh out my other friend that i was traveling with right he was like you are taking so long im just gonna order meituan so meituan is like their like food delivery
+2025-10-20 18:46:47,509 - INFO - 
+============================================================
+2025-10-20 18:46:47,510 - INFO - Processing sample 10/10: test10
+2025-10-20 18:46:48,048 - INFO - [TRANSCRIBE] Cleaned transcript: today my lampard manager really opened his cbike mug and told me the bodo words words i ever hear in my life
+2025-10-20 18:46:48,049 - INFO - 
+============================================================
+2025-10-20 18:46:48,049 - INFO - 
+Processing complete:
+2025-10-20 18:46:48,050 - INFO - Total samples processed: 10
+2025-10-20 18:46:48,050 - INFO - Successful transcriptions: 10
+2025-10-20 18:46:48,050 - INFO - Computing WER/CER metrics...
+2025-10-20 18:46:48,104 - INFO - Saving results to: results/toxicity
