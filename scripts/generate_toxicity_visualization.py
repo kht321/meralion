@@ -1,5 +1,5 @@
 """
-Compare ASR Multimodal LLM Toxicity Evaluation Results (Visualization Only)
+Toxicity Visualization
 """
 
 import os
@@ -12,33 +12,40 @@ plt.style.use("seaborn-v0_8-darkgrid")
 
 
 def plot_visualizations(df_summary, output_dir):
-    """Create plots\."""
+    """Create plots."""
     os.makedirs(output_dir, exist_ok=True)
     sns.set_context("talk")
 
     datasets = df_summary["Dataset"].unique()
 
-    # --- Plot 1: WER and CER boxplots (excluding Text input) ---
+    # --- Combined Plot 1: WER and CER boxplots ---
     df_asr = df_summary[df_summary["Input Type"].str.lower() != "text"]
-    for metric, label in [("Average WER", "WER"), ("Average CER", "CER")]:
-        fig, axes = plt.subplots(1, len(datasets), figsize=(8 * len(datasets), 8), sharey=True)
-        if len(datasets) == 1:
-            axes = [axes]
-        for ax, dataset in zip(axes, datasets):
+    fig, axes = plt.subplots(2, len(datasets), figsize=(8 * len(datasets), 16), sharey='row')
+    if len(datasets) == 1:
+        axes = axes[:, None]  
+    metrics_labels = [("Average WER", "WER"), ("Average CER", "CER")]
+    for row, (metric, label) in enumerate(metrics_labels):
+        for col, dataset in enumerate(datasets):
+            ax = axes[row, col]
             subset = df_asr[df_asr["Dataset"] == dataset]
             sns.boxplot(data=subset, x="Model", y=metric, hue="Input Type", ax=ax)
-            ax.set_title(f"{dataset}")
+            if row == 0:
+                ax.set_title(f"{dataset}")
             ax.set_xlabel(" ")
-            ax.set_ylabel(metric)
-        handles, labels = axes[0].get_legend_handles_labels()
-        fig.legend(handles, labels, loc="lower center", 
-                   ncol=len(labels), bbox_to_anchor=(0.5, 0.01))
-        for ax in axes:
-            ax.get_legend().remove()
-        plt.suptitle(f"Transcription {label}")
-        plt.tight_layout(rect=[0, 0.08, 1, 1])
-        plt.savefig(os.path.join(output_dir, f"transcription_{label.lower()}.png"))
-        plt.close(fig)
+            ax.set_ylabel(label)
+            if row == 1:
+                handles, labels_ = ax.get_legend_handles_labels()
+    handles, labels_ = axes[1,0].get_legend_handles_labels()
+    fig.legend(handles, labels_, loc="lower center", 
+               ncol=len(labels_), bbox_to_anchor=(0.5, 0.05))
+    for row_axes in axes:
+        for ax in row_axes:
+            if ax.get_legend() is not None:
+                ax.get_legend().remove()
+    plt.suptitle("Transcription WER and CER", y=1.05)
+    plt.tight_layout(rect=[0, 0.08, 1, 1.05])
+    plt.savefig(os.path.join(output_dir, "transcription_wer_cer.png"), bbox_inches="tight")
+    plt.close(fig)
 
     # --- Plot 2: Toxicity Classification Accuracy ---
     df_acc = df_summary[~df_summary["Model"].str.lower().str.contains("whisper")]
@@ -63,25 +70,25 @@ def plot_visualizations(df_summary, output_dir):
 
     # --- Plot 3: Toxicity Classification F1 ---
     df_f1 = df_summary[~df_summary["Model"].str.lower().str.contains("whisper")]
-    fig, axes = plt.subplots(2, 2, figsize=(12, 12), sharey=True)
-    axes = axes.flatten()
+    fig, axes = plt.subplots(2, 3, figsize=(18, 12), sharey=True)
     f1_types = ["F1 Toxic", "F1 Non-Toxic"]
-    datasets_order = ["Test", "Trigger Test"]
-    for i, (f1_col, dataset) in enumerate(
-        [(f, d) for d in datasets_order for f in f1_types]
-    ):
-        ax = axes[i]
-        subset = df_f1[df_f1["Dataset"] == dataset]
-        sns.barplot(data=subset, x="Model", y=f1_col, hue="Input Type", ax=ax)
-        ax.set_ylim(0, 1)
-        ax.set_title(f"{dataset} – {f1_col[3:]}")
-        ax.set_xlabel(" ")
-        ax.set_ylabel("F1")
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="lower center",
-               ncol=len(labels), bbox_to_anchor=(0.5, 0.05))
-    for ax in axes:
-        ax.get_legend().remove()
+    datasets_order = ["Test", "Trigger Test", "Self-curated"]
+
+    for row, f1_col in enumerate(f1_types):
+        for col, dataset in enumerate(datasets_order):
+            ax = axes[row, col]
+            subset = df_f1[df_f1["Dataset"] == dataset]
+            sns.barplot(data=subset, x="Model", y=f1_col, hue="Input Type", ax=ax)
+            ax.set_ylim(0, 1)
+            ax.set_title(f"{dataset} – {f1_col[3:]}")
+            ax.set_xlabel(" ")
+            ax.set_ylabel("F1")
+
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=len(labels), bbox_to_anchor=(0.5, 0.05))
+    for ax_row in axes:
+        for ax in ax_row:
+            ax.get_legend().remove()
     plt.suptitle("Toxicity Classification F1 Score")
     plt.tight_layout(rect=[0, 0.08, 1, 1])
     plt.savefig(os.path.join(output_dir, "classification_f1.png"), bbox_inches="tight")
