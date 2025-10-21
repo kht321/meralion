@@ -8,14 +8,24 @@ datasets==3.0.1
 soundfile==0.13.1
 librosa==0.10.2.post1
 numpy==1.26.4
+pydub==0.25.1
 
 # Coqui TTS (needs pandas<2.0)
 TTS==0.22.0
+
+# Machine Learning
+scikit-learn==1.3.2
+
+# Visualization
+matplotlib==3.8.2
+seaborn==0.13.0
+
+# Azure services (optional, for synthetic data generation)
+azure-cognitiveservices-speech==1.40.0
 
 # Logging + utilities
 tqdm==4.66.5
 pandas==1.5.3   # ✅ downgrade for TTS
 scipy==1.13.1
-tqdm==4.66.5
 pyyaml==6.0
 jiwer==3.0.5
