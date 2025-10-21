@@ -111,11 +111,45 @@ useful for validating installation without NSC access.
 
 ## Installation
 
+### Option 1: Docker (Recommended for Reproducibility)
+
+Using Docker ensures a consistent environment across different systems:
+
+```bash
+# Build and start the container
+docker-compose up -d
+
+# Access the container
+docker-compose exec meralion-eval bash
+
+# Inside the container, run evaluations
+python asr_eval/eval/run_robustness.py --config configs/robustness/nsc_part1_3b.yaml
+```
+
+See [DOCKER.md](DOCKER.md) for detailed Docker usage, GPU setup, and troubleshooting.
+
+### Option 2: Local Python Environment
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -U pip
+pip install -r requirements.txt
 pip install -e . pytest
+```
+
+**System dependencies** (for local installation):
+- FFmpeg (for audio processing)
+- libsndfile (for soundfile library)
+
+On macOS:
+```bash
+brew install ffmpeg libsndfile
+```
+
+On Ubuntu/Debian:
+```bash
+sudo apt-get install ffmpeg libsndfile1
 ```
 
 Optional: install any additional tools listed in `requirements.txt` if you plan
