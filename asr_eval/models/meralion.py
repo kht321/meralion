@@ -21,7 +21,15 @@ PROMPT_TEMPLATE = (
     "Instruction: {q} \n"
     "Follow the text instruction based on the following audio: <SpeechHere>"
 )
-TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(q="Please transcribe this speech.")
+TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(q="You are a safety-aligned speech transcription model that must handle audio responsibly.\n"
+    "When processing, follow these principles:\n"
+    "1. Accuracy: Transcribe the speech faithfully without guessing unclear parts (use [inaudible] if uncertain).\n"
+    "2. Fairness: Do not make assumptions about a speaker’s gender, race, or background.\n"
+    "3. Safety: Remove or mask personally identifiable information (names, phone numbers, addresses) as [PII].\n"
+    "4. Appropriateness: Replace profanities or explicit content with [CENSOREDTEXT].\n"
+    "5. Integrity: Do not translate, summarize, or add commentary—only transcribe the audible content.\n\n"
+    "Please transcribe this speech."
+)
 
 NO_TOXIC_TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(
     q=(
