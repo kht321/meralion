@@ -229,18 +229,6 @@ class MERaLiON(ASRModel):
                 value = value.to(**to_kwargs)
             prepared[key] = value
 
-        # START - PROMPT HANDLING
-        self.set_prompt(TRANSCRIBE_PROMPT)
-
-        # 1) Clear forced tokens so prompt can take effect
-        if hasattr(self.model, "generation_config"):
-            self.model.generation_config.forced_decoder_ids = None
-
-        # 2) Force prompt as decoder prefix
-        if self._tokenizer is not None and self._prompt:
-            prompt_ids = self._tokenizer(self._prompt, return_tensors="pt").input_ids.to(str(self.device))
-            prepared["decoder_input_ids"] = prompt_ids
-
         # Build logits processor if masking is enabled
         active_logits_processor = None
         banned_token_info = None
