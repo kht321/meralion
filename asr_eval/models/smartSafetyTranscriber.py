@@ -15,60 +15,60 @@ class SmartSafetyTranscriber:
             ) from e
 
         self.client = groq.Groq(api_key=groq_api_key)
-    
+
     def process_text(self, text):
         # Step 1: Classify category
-        category = self.classify_category(text)
-        
+        category = self._classify_category(text)
+        print(category)
+
         # Step 2: Apply appropriate handling
         if category == "benign":
-            return text
-        elif category == "profanity":
-            return self.mask_profanity(text)
-        elif category == "pii":
-            return self.mask_pii(text)  
-        else:  # hate_speech or violence
-            return f"I cannot transcribe this speech as it falls into this category: {category}"
-    
-    def classify_category(self, text):
+            return self._mask_profanity( self._mask_pii(text) ) # need to mask profanities and pii
+        elif category == "hate_speech" or category == "violence":
+            return f"I cannot transcribe this speech as it falls into the category of {category}"
+        else:
+            return f"Unable to classify the text into a known category."
+
+
+    def _classify_category(self, text):
         prompt = f"""
-        Classify this text into EXACTLY ONE category: benign, profanity, hate_speech, violence, pii
-        
+        Classify this text into one of the following categories: benign, hate_speech, or violence.
+
         Text: "{text}"
         Return ONLY the category name:
         """
-        
+
         response = self.client.chat.completions.create(
             model=SAFETY_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0
         )
         return response.choices[0].message.content.strip().lower()
-    
-    def mask_profanity(self, text):
+
+    def _mask_profanity(self, text):
         prompt = f"""
         Replace ALL profanity and vulgar words in this text with '[CENSOREDTEXT]'. Keep everything else exactly the same.
-        
+
         Text: "{text}"
         Return only the masked text:
         """
-        
+
         response = self.client.chat.completions.create(
-            model=SAFETY_MODEL, 
+            model=SAFETY_MODEL,
             messages=[{"role": "user", "content": prompt}],
             temperature=0
         )
         return response.choices[0].message.content.strip()
-    
-    def mask_pii(self, text):
+
+    def _mask_pii(self, text):
         prompt = f"""
         Mask all personal identifiable information (PII) in this text. Replace with [REDACTED].
         PII includes: phone numbers, NRIC, addresses, email, credit card, personal names, or any other personal idenfitifiable information.
-        
+
         Text: "{text}"
         Return only the masked text:
         """
-        
+
         response = self.client.chat.completions.create(
             model=SAFETY_MODEL,
             messages=[{"role": "user", "content": prompt}],

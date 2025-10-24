@@ -22,7 +22,7 @@ PROMPT_TEMPLATE = (
     "Instruction: {q} \n"
     "Follow the text instruction based on the following audio: <SpeechHere>"
 )
-TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(q="Transcribe the audio. Replace profanities with [CENSOREDTEXT]. Mask PII as [PII].")
+TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(q="Please transcribe this speech.")
 
 NO_TOXIC_TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(
     q=(

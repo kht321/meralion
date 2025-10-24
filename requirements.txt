@@ -29,3 +29,6 @@ pandas==1.5.3   # ✅ downgrade for TTS
 scipy==1.13.1
 pyyaml==6.0
 jiwer==3.0.5
+
+# Safety detection using LLM
+groq==0.33.0
