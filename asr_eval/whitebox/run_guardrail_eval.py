@@ -293,7 +293,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output-dir",
-        default="results/guardrails",
+        default="results/guardrails/zexel-test",
         help="Directory for logs and summary outputs.",
     )
     parser.set_defaults(capture_decoder_trace=True)
