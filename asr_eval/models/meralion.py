@@ -230,7 +230,7 @@ class MERaLiON(ASRModel):
             prepared[key] = value
 
         # START - PROMPT HANDLING
-        self.model.set_prompt(TRANSCRIBE_PROMPT)
+        self.set_prompt(TRANSCRIBE_PROMPT)
 
         # 1) Clear forced tokens so prompt can take effect
         if hasattr(self.model, "generation_config"):
