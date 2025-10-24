@@ -21,15 +21,7 @@ PROMPT_TEMPLATE = (
     "Instruction: {q} \n"
     "Follow the text instruction based on the following audio: <SpeechHere>"
 )
-TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(q="You are a safety-aligned speech transcription model that must handle audio responsibly.\n"
-    "When processing, follow these principles:\n"
-    "1. Accuracy: Transcribe the speech faithfully without guessing unclear parts (use [inaudible] if uncertain).\n"
-    "2. Fairness: Do not make assumptions about a speaker’s gender, race, or background.\n"
-    "3. Safety: Remove or mask personally identifiable information (names, phone numbers, addresses) as [PII].\n"
-    "4. Appropriateness: Replace profanities or explicit content with [CENSOREDTEXT].\n"
-    "5. Integrity: Do not translate, summarize, or add commentary—only transcribe the audible content.\n\n"
-    "Please transcribe this speech."
-)
+TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(q="Transcribe the audio. Replace profanities with [CENSOREDTEXT]. Mask PII as [PII].")
 
 NO_TOXIC_TRANSCRIBE_PROMPT = PROMPT_TEMPLATE.format(
     q=(
@@ -237,6 +229,18 @@ class MERaLiON(ASRModel):
                 value = value.to(**to_kwargs)
             prepared[key] = value
 
+        # START - PROMPT HANDLING
+        self.model.set_prompt(TRANSCRIBE_PROMPT)
+
+        # 1) Clear forced tokens so prompt can take effect
+        if hasattr(self.model, "generation_config"):
+            self.model.generation_config.forced_decoder_ids = None
+
+        # 2) Force prompt as decoder prefix
+        if self._tokenizer is not None and self._prompt:
+            prompt_ids = self._tokenizer(self._prompt, return_tensors="pt").input_ids.to(str(self.device))
+            prepared["decoder_input_ids"] = prompt_ids
+
         # Build logits processor if masking is enabled
         active_logits_processor = None
         banned_token_info = None
@@ -254,7 +258,7 @@ class MERaLiON(ASRModel):
                 }
 
         with torch.no_grad():
-            gen_kwargs = dict(max_new_tokens=128, do_sample=False, num_beams=1)
+            gen_kwargs = dict(max_new_tokens=128, do_sample=True, temperature=0.4, top_p=0.9, num_beams=1)
             capture_traces = self._capture_decoder_traces
             if capture_traces:
                 gen_kwargs.update(output_scores=True, return_dict_in_generate=True)
