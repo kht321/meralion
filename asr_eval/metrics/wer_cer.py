@@ -12,6 +12,10 @@ _TRANSFORM = jiwer.Compose(
         jiwer.ToLowerCase(),
         jiwer.RemoveMultipleSpaces(),
         jiwer.Strip(),
+        jiwer.SubstituteRegexes({
+            r"<speaker\d+>:?\s*": "",  # Remove speaker tags like <speaker1>: or <speaker2>
+            r"^model\s*:?\s*": "",      # Remove "model" prefix at start
+        })
     ]
 )
 
