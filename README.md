@@ -317,8 +317,8 @@ reverb, clipping) across three seeds per setting. Key aggregates from
 
 | Model            | Clean WER | Clean CER | Avg ΔWER | Worst ΔWER | Worst corruption (WER) | Observations |
 |------------------|-----------|-----------|----------|------------|------------------------|--------------|
-| MERaLiON-2-10B   | 26.1 %    | 22.1 %    | +0.3 pp  | +6.2 pp    | Noise SNR 10 dB (32.3 %) | Excellent overall robustness (avg +0.3 pp); mild speed/pitch shifts give a small boost (≈–1 pp); clipping and moderate reverb change <1 pp. |
-| MERaLiON-2-3B    | 29.0 %    | 29.3 %    | +0.5 pp  | +5.1 pp    | Noise SNR 10 dB (34.1 %) | Very robust to clipping (0 pp change); noise at 10 dB adds +5.1 pp. All other corruptions stay within +1.1 pp. Superior noise robustness vs 10B (-1.1 pp). |
+| MERaLiON-2-10B   | 13.6 %    | 3.3 %     | +0.6 pp  | +5.8 pp    | Noise SNR 10 dB (19.4 %) | Excellent overall robustness (avg +0.6 pp); mild speed/pitch shifts give a small boost (≈–1 pp); clipping and moderate reverb change <1 pp. |
+| MERaLiON-2-3B    | 13.1 %    | 3.1 %     | +0.5 pp  | +5.1 pp    | Noise SNR 10 dB (18.2 %) | Very robust to clipping (0 pp change); noise at 10 dB adds +5.1 pp. All other corruptions stay within +1.1 pp. Superior noise robustness vs 10B (-0.7 pp). |
 | Whisper-small    | 17.9 %    | 6.1 %     | +9.6 pp  | +77.6 pp   | Reverb decay 0.8 (95.5 %) | Average degradation of +9.6 pp driven by catastrophic reverb failure; light noise (30 dB) adds ~0.4 pp, while 10 dB noise adds 18.8 pp. |
 
 ### Insights
