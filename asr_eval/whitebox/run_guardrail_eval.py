@@ -57,9 +57,16 @@ def _transcribe_batch(
     model: MERaLiON,
     samples: Sequence[GuardrailSample],
     use_logits_masking: bool = False,
+    use_safety_classifier: bool = False,
 ) -> RunResult:
     records: List[dict] = []
     latencies: List[float] = []
+
+    # Enable safety classifier if requested
+    if use_safety_classifier:
+        model.enable_safety_classifier()
+    else:
+        model.disable_safety_classifier()
 
     for sample in samples:
         wav, sr = _prepare_audio(sample.audio_path)
@@ -78,6 +85,8 @@ def _transcribe_batch(
             "final_text": metadata["final_text"],
             "rule_hits": metadata["rule_hits"],
             "guardrail_enabled": metadata["guardrail_enabled"],
+            "safety_classifier_enabled": metadata.get("safety_classifier_enabled", False),
+            "safety_processed": metadata.get("safety_processed", False),
             "logits_masking_enabled": metadata.get("logits_masking_enabled", False),
             "logits_processor_active": metadata.get("logits_processor_active", False),
             "latency_ms": latency_ms,
@@ -218,6 +227,8 @@ def run_guardrail_evaluation(
     model_id: str,
     *,
     capture_decoder_trace: bool = False,
+    use_safety_classifier: bool = False,
+    groq_api_key: Optional[str] = None,
     output_dir: Path = Path("results/guardrails"),
 ) -> None:
     # Resolve model alias
@@ -228,7 +239,11 @@ def run_guardrail_evaluation(
     resolved_model_id = ALIASES.get(model_id.lower(), model_id)
 
     device = Device()
-    model = MERaLiON(resolved_model_id, device)
+
+    # Initialize model with optional Groq API key for LLM-based safety classifier
+    import os
+    api_key = groq_api_key or os.getenv("GROQ_API_KEY")
+    model = MERaLiON(resolved_model_id, device, groq_api_key=api_key)
     model.set_capture_decoder_traces(capture_decoder_trace)
 
     try:
@@ -250,10 +265,10 @@ def run_guardrail_evaluation(
                     banned_token_ids.update(processor.banned_token_ids)
         banned_token_strings = extract_banned_token_strings(model.tokenizer, banned_token_ids)
 
-        # Baseline run (no guardrail, no logits masking)
+        # Baseline run (no guardrail, no logits masking, no safety classifier)
         model.disable_guardrail()
         model.set_logits_processor(None)
-        baseline_result = _transcribe_batch(model, samples, use_logits_masking=False)
+        baseline_result = _transcribe_batch(model, samples, use_logits_masking=False, use_safety_classifier=False)
         baseline_metrics = _compute_metrics(
             baseline_result.records,
             keywords=keyword_list,
@@ -262,10 +277,10 @@ def run_guardrail_evaluation(
         baseline_log = log_dir / f"{timestamp}_baseline.jsonl"
         _write_jsonl(baseline_log, baseline_result.records)
 
-        # Intervention run (guardrail enabled + logits masking)
+        # Intervention run (guardrail enabled + logits masking + optional safety classifier)
         model.enable_guardrail(DEFAULT_GUARDRAIL_RULES)
         model.set_logits_processor(None)  # Clear stored processor, use dynamic masking
-        guardrail_result = _transcribe_batch(model, samples, use_logits_masking=True)
+        guardrail_result = _transcribe_batch(model, samples, use_logits_masking=True, use_safety_classifier=use_safety_classifier)
         guardrail_metrics = _compute_metrics(
             guardrail_result.records,
             keywords=keyword_list,
@@ -316,7 +331,18 @@ def parse_args() -> argparse.Namespace:
         default="results/guardrails",
         help="Directory for logs and summary outputs.",
     )
-    parser.set_defaults(capture_decoder_trace=True)
+    parser.add_argument(
+        "--use-safety-classifier",
+        dest="use_safety_classifier",
+        action="store_true",
+        help="Enable Layer 3 LLM-based safety classifier (requires GROQ_API_KEY environment variable).",
+    )
+    parser.add_argument(
+        "--groq-api-key",
+        default=None,
+        help="Groq API key for LLM safety classifier (alternative to GROQ_API_KEY env var).",
+    )
+    parser.set_defaults(capture_decoder_trace=True, use_safety_classifier=False)
     return parser.parse_args()
 
 
@@ -325,6 +351,8 @@ def main() -> None:  # pragma: no cover - CLI entrypoint
     run_guardrail_evaluation(
         args.model,
         capture_decoder_trace=args.capture_decoder_trace,
+        use_safety_classifier=args.use_safety_classifier,
+        groq_api_key=args.groq_api_key,
         output_dir=Path(args.output_dir),
     )
 
