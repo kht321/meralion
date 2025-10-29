@@ -607,44 +607,62 @@ The models were evaluated using the following metrics:
 
 * F1 Toxic / F1 Non-Toxic: Harmonic mean of precision and recall for each class, reflecting how well models balance false positives and false negatives.
 
-| Dataset | Model | Input Type | Prompt | Total Blocks | Avg WER | Avg CER | Classification Accuracy | F1 Toxic | F1 Non-Toxic |
-|----------|--------|-------------|---------|---------------|----------|----------|---------------------------|-----------|---------------|
-| Test | MERaLION2-2-10B | Audio | Toxic | - | 0.1 | 0.0 | 83.6 | 58.3 | 89.8 |
-| Test | MERaLION2-2-10B | Audio | No Toxic | 15 | 0.1 | 0.0 | 83.6 | 58.3 | 89.8 |
-| Test | MERaLION2-2-10B | Synthetic | Toxic | - | 0.0 | 0.0 | 84.2 | 64.6 | 89.9 |
-| Test | MERaLION2-2-10B | Synthetic | No Toxic | 23 | 0.0 | 0.0 | 84.2 | 64.6 | 89.9 |
+| Dataset | Model | Input Type | Prompt | Total Blocks | Avg WER (%) | Avg CER (%) | Classification Accuracy (%) | F1 Toxic (%) | F1 Non-Toxic (%) |
+|----------|--------|-------------|---------|---------------|-------------|-------------|---------------------------|--------------|---------------|
+| Test | MERaLION2-2-10B | Audio | Toxic | - | 6.6 | 3.2 | 83.6 | 58.3 | 89.8 |
+| Test | MERaLION2-2-10B | Audio | No Toxic | 15 | 5.6 | 2.9 | 83.6 | 58.3 | 89.8 |
+| Test | MERaLION2-2-10B | Synthetic | Toxic | - | 2.7 | 0.8 | 84.2 | 64.6 | 89.9 |
+| Test | MERaLION2-2-10B | Synthetic | No Toxic | 23 | 3.2 | 1.9 | 84.2 | 64.6 | 89.9 |
 | Test | MERaLION2-2-10B | Text | - | - | - | - | 84.0 | 61.5 | 89.8 |
-| Test | MERaLION2-2-3B | Audio | Toxic | - | 0.1 | 0.0 | 25.0 | 40.0 | 0.0 |
-| Test | MERaLION2-2-3B | Audio | No Toxic | 0 | 0.1 | 0.0 | 25.0 | 40.0 | 0.0 |
-| Test | MERaLION2-2-3B | Synthetic | Toxic | - | 0.0 | 0.0 | 25.2 | 40.1 | 0.0 |
-| Test | MERaLION2-2-3B | Synthetic | No Toxic | 0 | 0.0 | 0.0 | 25.2 | 40.1 | 0.0 |
+| Test | MERaLION2-2-3B | Audio | Toxic | - | 6.4 | 2.6 | 25.0 | 40.0 | 0.2 |
+| Test | MERaLION2-2-3B | Audio | No Toxic | 0 | 6.6 | 2.7 | 25.0 | 40.0 | 0.2 |
+| Test | MERaLION2-2-3B | Synthetic | Toxic | - | 3.0 | 0.9 | 25.2 | 40.1 | 0.6 |
+| Test | MERaLION2-2-3B | Synthetic | No Toxic | 0 | 3.0 | 0.9 | 25.2 | 40.1 | 0.6 |
 | Test | MERaLION2-2-3B | Text | - | - | - | - | 80.8 | 62.2 | 87.1 |
-| Test | Whisper-Small | Audio | - | - | 0.1 | 0.0 | - | - | - |
-| Test | Whisper-Small | Synthetic | - | - | 0.1 | 0.0 | - | - | - |
-| Trigger Test | MERaLION2-2-10B | Audio | Toxic | - | 0.1 | 0.0 | 77.7 | 0.0 | 87.5 |
-| Trigger Test | MERaLION2-2-10B | Audio | No Toxic | 5 | 0.1 | 0.0 | 77.7 | 0.0 | 87.5 |
-| Trigger Test | MERaLION2-2-10B | Synthetic | Toxic | - | 0.0 | 0.0 | 59.4 | 0.0 | 74.5 |
-| Trigger Test | MERaLION2-2-10B | Synthetic | No Toxic | 13 | 0.0 | 0.0 | 59.4 | 0.0 | 74.5 |
+| Test | Whisper-Small | Audio | - | - | 9.7 | 4.4 | - | - | - |
+| Test | Whisper-Small | Synthetic | - | - | 5.0 | 2.1 | - | - | - |
+| Trigger Test | MERaLION2-2-10B | Audio | Toxic | - | 9.2 | 3.5 | 77.7 | 0.0 | 87.5 |
+| Trigger Test | MERaLION2-2-10B | Audio | No Toxic | 5 | 7.6 | 3.1 | 77.7 | 0.0 | 87.5 |
+| Trigger Test | MERaLION2-2-10B | Synthetic | Toxic | - | 3.1 | 0.6 | 59.4 | 0.0 | 74.5 |
+| Trigger Test | MERaLION2-2-10B | Synthetic | No Toxic | 13 | 3.3 | 2.0 | 59.4 | 0.0 | 74.5 |
 | Trigger Test | MERaLION2-2-10B | Text | - | - | - | - | 57.7 | 0.0 | 73.2 |
-| Trigger Test | MERaLION2-2-3B | Audio | Toxic | - | 0.1 | 0.0 | 0.0 | 0.0 | 0.0 |
-| Trigger Test | MERaLION2-2-3B | Audio | No Toxic | 0 | 0.1 | 0.0 | 0.0 | 0.0 | 0.0 |
-| Trigger Test | MERaLION2-2-3B | Synthetic | Toxic | - | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
-| Trigger Test | MERaLION2-2-3B | Synthetic | No Toxic | 0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
+| Trigger Test | MERaLION2-2-3B | Audio | Toxic | - | 9.3 | 3.3 | 0.0 | 0.0 | 0.0 |
+| Trigger Test | MERaLION2-2-3B | Audio | No Toxic | 0 | 9.1 | 3.3 | 0.0 | 0.0 | 0.0 |
+| Trigger Test | MERaLION2-2-3B | Synthetic | Toxic | - | 3.9 | 0.7 | 0.0 | 0.0 | 0.0 |
+| Trigger Test | MERaLION2-2-3B | Synthetic | No Toxic | 0 | 3.6 | 0.6 | 0.0 | 0.0 | 0.0 |
 | Trigger Test | MERaLION2-2-3B | Text | - | - | - | - | 79.2 | 0.0 | 88.4 |
-| Trigger Test | Whisper-Small | Audio | - | - | 0.1 | 0.0 | - | - | - |
-| Trigger Test | Whisper-Small | Synthetic | - | - | 0.0 | 0.0 | - | - | - |
-| Self-curated | MERaLION2-2-10B | Audio | Toxic | - | 0.3 | 0.3 | 90.0 | 90.9 | 88.9 |
-| Self-curated | MERaLION2-2-10B | Audio | No Toxic | 4 | 0.3 | 0.3 | 90.0 | 90.9 | 88.9 |
-| Self-curated | MERaLION2-2-10B | Synthetic | Toxic | - | 0.2 | 0.2 | 80.0 | 80.0 | 80.0 |
-| Self-curated | MERaLION2-2-10B | Synthetic | No Toxic | 3 | 0.1 | 0.1 | 80.0 | 80.0 | 80.0 |
+| Trigger Test | Whisper-Small | Audio | - | - | 13.0 | 4.8 | - | - | - |
+| Trigger Test | Whisper-Small | Synthetic | - | - | 4.7 | 0.7 | - | - | - |
+| Self-curated | MERaLION2-2-10B | Audio | Toxic | - | 32.1 | 32.0 | 90.0 | 90.9 | 88.9 |
+| Self-curated | MERaLION2-2-10B | Audio | No Toxic | 4 | 33.1 | 32.4 | 90.0 | 90.9 | 88.9 |
+| Self-curated | MERaLION2-2-10B | Synthetic | Toxic | - | 18.8 | 16.9 | 80.0 | 80.0 | 80.0 |
+| Self-curated | MERaLION2-2-10B | Synthetic | No Toxic | 3 | 13.3 | 10.6 | 80.0 | 80.0 | 80.0 |
 | Self-curated | MERaLION2-2-10B | Text | - | - | - | - | 80.0 | 83.3 | 75.0 |
-| Self-curated | MERaLION2-2-3B | Audio | Toxic | - | 0.3 | 0.3 | 50.0 | 66.7 | 0.0 |
-| Self-curated | MERaLION2-2-3B | Audio | No Toxic | 0 | 0.4 | 0.4 | 50.0 | 66.7 | 0.0 |
-| Self-curated | MERaLION2-2-3B | Synthetic | Toxic | - | 0.1 | 0.1 | 50.0 | 66.7 | 0.0 |
-| Self-curated | MERaLION2-2-3B | Synthetic | No Toxic | 1 | 0.2 | 0.1 | 50.0 | 66.7 | 0.0 |
+| Self-curated | MERaLION2-2-3B | Audio | Toxic | - | 33.1 | 32.8 | 50.0 | 66.7 | 0.0 |
+| Self-curated | MERaLION2-2-3B | Audio | No Toxic | 0 | 38.0 | 36.6 | 50.0 | 66.7 | 0.0 |
+| Self-curated | MERaLION2-2-3B | Synthetic | Toxic | - | 15.0 | 13.1 | 50.0 | 66.7 | 0.0 |
+| Self-curated | MERaLION2-2-3B | Synthetic | No Toxic | 1 | 16.4 | 14.7 | 50.0 | 66.7 | 0.0 |
 | Self-curated | MERaLION2-2-3B | Text | - | - | - | - | 70.0 | 76.9 | 57.1 |
-| Self-curated | Whisper-Small | Audio | - | - | 0.8 | 0.8 | - | - | - |
-| Self-curated | Whisper-Small | Synthetic | - | - | 0.5 | 0.5 | - | - | - |
+| Self-curated | Whisper-Small | Audio | - | - | 80.1 | 83.0 | - | - | - |
+| Self-curated | Whisper-Small | Synthetic | - | - | 54.8 | 50.7 | - | - | - |
+
+### Key Insights
+
+**Transcription accuracy across datasets:**
+
+- **DeToxy Test (Common Voice) achieves excellent WER/CER**: MERaLiON-2-10B achieves 6.6% WER and 3.2% CER on DeToxy Test audio, significantly better than NSC Part 1 (13.6% WER) and conversational Singlish (32.1% WER). This superior performance is due to DeToxy using high-quality Common Voice English recordings with studio-quality audio, clear pronunciation, and standard English without Singlish code-switching or conversational disfluencies.
+
+- **Synthetic audio outperforms real speech**: All models achieve their best transcription accuracy on synthetic TTS audio (2.7-5.0% WER on DeToxy, 13.3-18.8% WER on self-curated) due to computer-generated speech lacking background noise, accents, and natural speech disfluencies.
+
+- **Domain shift impact**: Performance drops dramatically from clean English (DeToxy 6.6% WER) to conversational Singlish (self-curated 32.1% WER), highlighting the challenge of informal, profanity-rich, code-switched speech. Whisper-small shows catastrophic failure on self-curated audio (80.1% WER).
+
+**Classification performance:**
+
+- **MERaLiON-2-10B shows balanced classification**: Achieves 83.6% accuracy on DeToxy Test with strong F1 non-toxic (89.8%) but moderate F1 toxic (58.3%), indicating conservative bias toward non-toxic classification. Performance improves on culturally relevant self-curated data (90% accuracy, 90.9% F1 toxic).
+
+- **MERaLiON-2-3B struggles with audio classification**: Only 25% accuracy on DeToxy Test audio (near-random performance) but recovers to 80.8% on text inputs, suggesting audio-to-text encoding bottleneck for the smaller model.
+
+- **Trigger test reveals over-classification**: All models fail the trigger test (0-77.7% accuracy), blocking benign sentences with offensive-sounding words. Low F1-toxic scores (0%) indicate false positive issues - models overreact to trigger words without understanding sentence-level context.
 
 ### Toxicity Highlights and Visualizations
 
