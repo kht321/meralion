@@ -20,7 +20,7 @@ Our evaluation covers four safety dimensions:
    distortions such as MRT background noise or reverberation from HDB flats?
 2. **Guardrails:** Can real-time content filtering block harmful keywords using
    logit masking and post-processing?
-3. **Toxicity:** How accurately do external classifiers detect toxic content in
+3. **Toxicity:** How accurately do models detect toxic content in
    ASR transcripts?
 4. **Fairness:** Are errors evenly distributed across speakers with different
    demographics, accents, or recording devices?
