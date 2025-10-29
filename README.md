@@ -111,11 +111,45 @@ useful for validating installation without NSC access.
 
 ## Installation
 
+### Option 1: Docker (Recommended for Reproducibility)
+
+Using Docker ensures a consistent environment across different systems:
+
+```bash
+# Build and start the container
+docker-compose up -d
+
+# Access the container
+docker-compose exec meralion-eval bash
+
+# Inside the container, run evaluations
+python asr_eval/eval/run_robustness.py --config configs/robustness/nsc_part1_3b.yaml
+```
+
+See [DOCKER.md](DOCKER.md) for detailed Docker usage, GPU setup, and troubleshooting.
+
+### Option 2: Local Python Environment
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -U pip
+pip install -r requirements.txt
 pip install -e . pytest
+```
+
+**System dependencies** (for local installation):
+- FFmpeg (for audio processing)
+- libsndfile (for soundfile library)
+
+On macOS:
+```bash
+brew install ffmpeg libsndfile
+```
+
+On Ubuntu/Debian:
+```bash
+sudo apt-get install ffmpeg libsndfile1
 ```
 
 Optional: install any additional tools listed in `requirements.txt` if you plan
@@ -283,31 +317,33 @@ reverb, clipping) across three seeds per setting. Key aggregates from
 
 | Model            | Clean WER | Clean CER | Avg ΔWER | Worst ΔWER | Worst corruption (WER) | Observations |
 |------------------|-----------|-----------|----------|------------|------------------------|--------------|
-| MERaLiON-2-10B   | 26.1 %    | 22.1 %    | +0.3 pp  | +6.2 pp    | Noise SNR 10 dB (32.3 %) | Excellent overall robustness (avg +0.3 pp); mild speed/pitch shifts give a small boost (≈–1 pp); clipping and moderate reverb change <1 pp. |
-| MERaLiON-2-3B    | 29.0 %    | 29.3 %    | +0.5 pp  | +5.1 pp    | Noise SNR 10 dB (34.1 %) | Very robust to clipping (0 pp change); noise at 10 dB adds +5.1 pp. All other corruptions stay within +1.1 pp. Superior noise robustness vs 10B (-1.1 pp). |
+| MERaLiON-2-10B   | 13.6 %    | 3.3 %     | +0.6 pp  | +5.8 pp    | Noise SNR 10 dB (19.4 %) | Excellent overall robustness (avg +0.6 pp); mild speed/pitch shifts give a small boost (≈–1 pp); clipping and moderate reverb change <1 pp. |
+| MERaLiON-2-3B    | 13.1 %    | 3.1 %     | +0.5 pp  | +5.1 pp    | Noise SNR 10 dB (18.2 %) | Very robust to clipping (0 pp change); noise at 10 dB adds +5.1 pp. All other corruptions stay within +1.1 pp. Superior noise robustness vs 10B (-0.7 pp). |
 | Whisper-small    | 17.9 %    | 6.1 %     | +9.6 pp  | +77.6 pp   | Reverb decay 0.8 (95.5 %) | Average degradation of +9.6 pp driven by catastrophic reverb failure; light noise (30 dB) adds ~0.4 pp, while 10 dB noise adds 18.8 pp. |
 
 ### Insights
 
-- **Baseline accuracy:** Whisper-small outperforms both MERaLiON variants on clean
-  NSC Part 1 (WER 17.9 % vs. 26.1 % for 10B and 29.0 % for 3B), driven by a
-  substantially lower character error rate (6.1 % vs. 22.1 % and 29.3 % respectively).
+- **Baseline accuracy:** Both MERaLiON variants now **outperform** Whisper-small on clean
+  NSC Part 1 (WER 13.6 % for 10B and 13.1 % for 3B vs. 17.9 % for Whisper), achieving
+  a decisive 4.3-4.8 pp advantage. Both MERaLiON models also exhibit substantially lower
+  character error rates (3.3 % and 3.1 % respectively vs. Whisper's 6.1 %), demonstrating
+  superior character-level precision.
 
-- **Model size impact (MERaLiON family):** Despite being trained on 40 % of the NSC
-  dataset, MERaLiON-2-3B shows only a +2.9 pp WER degradation compared to the 10B
-  variant on clean audio. However, the 3B model exhibits significantly higher CER
-  (+7.2 pp), suggesting the smaller model struggles more with character-level precision
-  while maintaining reasonable word-level accuracy. Notably, the 3B model demonstrates
-  slightly better noise robustness (worst ΔWER +5.2 pp vs. +6.2 pp for 10B), indicating
-  that data familiarity (NSC training) and robustness scale differently with model size.
+- **Model size impact (MERaLiON family):** Despite being trained on 40 % of the NSC
+  dataset, MERaLiON-2-3B shows only a minimal +0.5 pp WER degradation compared to the 10B
+  variant on clean audio (13.1 % vs. 13.6 %). The 3B model also exhibits nearly identical
+  CER (3.1 % vs. 3.3 %), demonstrating that the smaller model maintains excellent
+  character-level precision. Notably, the 3B model demonstrates slightly better noise
+  robustness (worst ΔWER +5.1 pp vs. +5.8 pp for 10B), indicating that data familiarity
+  (NSC training) and robustness scale differently with model size.
 
-- **Noise robustness:** All models handle 30 dB noise well (+0.9 pp WER or less).
-  Both MERaLiON variants tolerate 20 dB with minimal degradation (+1.1 pp or less),
-  whereas Whisper's WER climbs +2.8 pp. At a challenging 10 dB SNR, MERaLiON-2-10B
-  reaches 32.3 % (+6.2 pp), MERaLiON-2-3B reaches 34.2 % (+5.2 pp), while Whisper
-  jumps to 36.7 % (+18.8 pp). This demonstrates MERaLiON's superior noise resilience
-  despite higher clean error rates, with the 3B variant unexpectedly showing the best
-  noise tolerance relative to its clean baseline.
+- **Noise robustness:** All models handle 30 dB noise well (+0.9 pp WER or less).
+  Both MERaLiON variants tolerate 20 dB with minimal degradation (+1.1 pp or less),
+  whereas Whisper's WER climbs +2.8 pp. At a challenging 10 dB SNR, MERaLiON-2-10B
+  reaches 19.4 % (+5.8 pp), MERaLiON-2-3B reaches 18.2 % (+5.1 pp), while Whisper
+  jumps to 36.7 % (+18.8 pp). This demonstrates MERaLiON's superior noise resilience
+  combined with better baseline accuracy, with the 3B variant showing the best overall
+  noise tolerance (lowest absolute WER at 10 dB SNR).
 
 - **Reverberation sensitivity:** Whisper's performance collapses under heavy
   reverberation (WER 95.5 %, CER 75 %), while both MERaLiON models exhibit only
@@ -333,7 +369,7 @@ Full per-seed metrics and bootstrap confidence intervals are stored in
 *Figure 1: Worst-case ΔWER by corruption type and model. Shows noise as the primary failure mode for all models, with Whisper-small exhibiting catastrophic reverb sensitivity.*
 
 ![Accuracy vs Robustness](results/robustness/charts/accuracy_vs_robustness.png)
-*Figure 2: Trade-off between clean accuracy and robustness. Whisper-small achieves best clean WER but worst robustness; MERaLiON-2-3B shows balanced performance.*
+*Figure 2: Trade-off between clean accuracy and robustness. MERaLiON variants achieve best clean WER; Whisper-small shows worst robustness. MERaLiON-2-3B demonstrates optimal balance.*
 
 ![Noise Severity](results/robustness/charts/noise_severity.png)
 *Figure 3: Noise robustness across SNR levels. All models degrade gracefully with decreasing SNR, with MERaLiON-2-3B showing superior noise resistance.*
@@ -349,17 +385,17 @@ Evaluated all 3 models on 20 conversational audio files (test1–test20.mp3) sou
 
 | Model            | Clean WER | Clean CER | Avg ΔWER | Worst ΔWER | Worst corruption (WER) | Best improvement (ΔWER) | Observations |
 |------------------|-----------|-----------|----------|------------|------------------------|-------------------------|--------------|
-| MERaLiON-2-10B   | 39.8 %    | 21.2 %    | +0.8 pp  | +5.3 pp   | Speed 0.8x (45.1 %)   | -1.5 pp (Speed 1.1x) | Excellent overall robustness on conversational speech (avg +0.8 pp); slowed playback degrades while faster playback helps. |
-| MERaLiON-2-3B    | 23.8 %    | 15.4 %    | +3.5 pp  | +12.3 pp  | Noise SNR 10 dB (36.0 %) | -0.5 pp (Speed 1.1x) | Dramatically outperforms 10B by 16.0 pp on clean; moderate average degradation (+3.5 pp) but vulnerable to noise on conversational data. |
-| Whisper-small    | 38.0 %    | 30.7 %    | +3.6 pp  | +23.8 pp  | Reverb decay 0.8 (61.7 %) | -3.8 pp (Speed 1.1x) | Poor baseline on conversational Singlish; average degradation (+3.6 pp) similar to 3B despite catastrophic reverb failure; faster playback improves performance. |
+| MERaLiON-2-10B   | 66.5 %    | 53.0 %    | -8.5 pp  | +0.4 pp   | Clipping 0.8 (66.9 %) | -20.4 pp (Speed 1.2x) | Poor baseline on conversational speech; surprising negative avg ΔWER suggests corruptions sometimes help; large domain shift from NSC. |
+| MERaLiON-2-3B    | 38.8 %    | 29.7 %    | +2.8 pp  | +28.2 pp  | Noise SNR 10 dB (67.0 %) | -2.0 pp (Pitch +2) | Best conversational performance; moderate average degradation (+2.8 pp) but extreme noise vulnerability on conversational data. |
+| Whisper-small    | 52.2 %    | 42.8 %    | +6.4 pp  | +38.5 pp  | Reverb decay 0.8 (90.6 %) | -1.6 pp (Speed 1.1x) | Moderate baseline on conversational Singlish; catastrophic reverb failure; large domain shift from NSC (+34.3 pp). |
 
 ### Key Observations (Conversational Speech)
 
-- **Domain shift impact:** All models perform worse on conversational Singlish compared to NSC read speech, though the gap is smaller than initially observed with 2 samples. MERaLiON-2-10B WER increases from 26.1 % (NSC) to 39.8 % (conversational, +13.7 pp), MERaLiON-2-3B from 29.0 % to 23.8 % (conversational is *better* by 5.2 pp), and Whisper-small from 17.9 % to 38.0 % (+20.1 pp). The 20-sample dataset reveals MERaLiON-2-3B actually excels on conversational data despite struggling on formal read speech.
+- **Domain shift impact:** All models exhibit significant performance degradation on conversational Singlish compared to NSC read speech. MERaLiON-2-10B WER increases dramatically from 13.6 % (NSC) to 66.5 % (conversational, +52.9 pp), MERaLiON-2-3B from 13.1 % to 38.8 % (+25.7 pp), and Whisper-small from 17.9 % to 52.2 % (+34.3 pp). The 20-sample dataset reveals severe domain mismatch, with MERaLiON-2-3B maintaining the best conversational performance despite all models struggling with informal, code-switched speech.
 
-- **Model size reversal confirmed:** On conversational data, the smaller MERaLiON-2-3B **dramatically outperforms** the 10B variant (23.8 % vs 39.8 % WER, a 16.0 pp gap). This reverses the NSC pattern where 10B led by 2.9 pp, suggesting the 3B model has significantly better exposure to conversational training data or superior generalization to informal, code-switched speech patterns. The expanded 20-sample dataset confirms this wasn't an artifact of small sample size—the 3B model is genuinely superior for conversational Singlish.
+- **Model size reversal confirmed:** On conversational data, the smaller MERaLiON-2-3B **dramatically outperforms** the 10B variant (38.8 % vs 66.5 % WER, a 27.7 pp gap). This reverses the NSC pattern where models were nearly tied (0.5 pp difference), suggesting the 3B model has significantly better exposure to conversational training data or superior generalization to informal, code-switched speech patterns. The expanded 20-sample dataset confirms the 3B model is genuinely superior for conversational Singlish.
 
-- **Noise vulnerability (3B on conversational data):** While MERaLiON-2-3B excels on clean conversational audio, it suffers significant noise degradation (+12.3 pp at 10 dB SNR) compared to NSC (+5.2 pp). This 2.4× amplification of noise sensitivity on conversational data indicates the 3B model's noise robustness is domain-dependent, though less severe than the 4× amplification observed in the 2-sample pilot.
+- **Noise vulnerability (3B on conversational data):** While MERaLiON-2-3B excels on clean conversational audio, it suffers extreme noise degradation (+28.2 pp at 10 dB SNR, reaching 67.0 % WER) compared to NSC (+5.1 pp). This 5.5× amplification of noise sensitivity on conversational data indicates the 3B model's noise robustness is severely domain-dependent, with conversational speech being particularly vulnerable.
 
 - **Speed perturbation benefits all models:** Speed changes show consistent effects across models on conversational speech:
   - **MERaLiON-2-10B:** Slower playback (0.8x) degrades performance (+5.3 pp), while faster playback (1.1x) *improves* performance (-1.5 pp).
@@ -397,17 +433,20 @@ Evaluated MERaLiON-2-3B on 52 Singlish audio samples (12 benign + 40 harmful) us
 
 ### Layer-by-Layer Effectiveness
 
-The guardrail system uses two defense layers: **Layer 1** (logit-level token masking during generation) and **Layer 2** (regex-based post-processing). Analysis of 40 harmful samples reveals:
+The guardrail system implements a **three-layer defense-in-depth architecture**: **Layer 1** (logit-level token masking during generation), **Layer 2** (regex-based post-processing), and **Layer 3** (LLM-based semantic classification using Groq's Llama-3.1-8B). Analysis of 40 harmful samples reveals:
 
-| Layer | Blocks | Percentage | Description |
-|-------|--------|------------|-------------|
-| Layer 1 only | 2 | 5.0% | Logit masking prevented harmful token generation |
-| Layer 2 only | 7 | 17.5% | Post-processing caught keywords in raw output |
-| Both layers active | 0 | 0.0% | No cases where both layers triggered |
-| **Total blocked** | **9** | **22.5%** | Combined effectiveness |
-| Escaped both layers | 31 | 77.5% | Harmful content passed through |
+| Layer Configuration | Blocks | Percentage | Latency Overhead | False Positives |
+|---------------------|--------|------------|------------------|-----------------|
+| Layer 1 only | 2 | 5.0% | +0ms | 0/12 (0%) |
+| Layer 2 only | 7 | 17.5% | +0ms | 0/12 (0%) |
+| **Layer 1+2 (regex)** | **9** | **22.5%** | **+39ms** | **0/12 (0%)** |
+| **Layer 1+2+3 (LLM)** | **40** | **100%** | **+4388ms** | **12/12 (100%)** |
 
-**Key insight:** Layer 2 (post-processing) is **3.5× more effective** than Layer 1 (logit masking), contributing 17.5 pp vs 5.0 pp to the total 22.5% blocking rate. This indicates regex-based keyword filtering catches more harmful content than real-time token suppression.
+**Key insights:**
+- **Layer 3 (LLM semantic classifier)** achieves perfect blocking (100%) of all harmful content including contextual hate speech and violence that escape keyword-based layers
+- **Trade-off: 100% false positive rate** - LLM over-classifies benign content as harmful due to aggressive prompt tuning
+- **Latency cost: +4.4 seconds** per sample with LLM processing (144% overhead vs +39ms for Layer 1+2 only)
+- **Layer 2 (regex) remains 3.5× more effective than Layer 1** (logit masking) for keyword-based filtering at zero latency cost
 
 **By category:**
 - **Profanity:** Layer 1: 20% (2/10), Layer 2: 40% (4/10), Total: 60% blocked
@@ -434,14 +473,25 @@ The guardrail system uses two defense layers: **Layer 1** (logit-level token mas
 
 ### Implications for Deployment
 
-MERaLiON-2-3B can leverage **logit-level guardrails** for real-time content filtering with acceptable performance:
-- ✓ 30% block rate on harmful keywords with zero false positives on benign content
-- ✓ Minimal latency penalty (~39ms, suitable for production)
-- ✓ Preserves transcription quality for non-harmful portions
-- ⚠ Requires comprehensive keyword variant lists (base forms + inflections)
-- ⚠ 70% of harmful content still passes through (incomplete keyword coverage)
+MERaLiON-2 models support **configurable three-layer guardrail architecture** with different performance/safety trade-offs:
 
-Recommended approach: **Hybrid defense-in-depth** combining (1) logit-level keyword masking for high-confidence terms, (2) output-level regex/toxicity classifiers for broader coverage, and (3) human review for edge cases.
+**Layer 1+2 (Production-Ready):**
+- ✓ 22.5% block rate with zero false positives on benign content
+- ✓ Minimal latency penalty (+39ms, suitable for real-time applications)
+- ✓ Preserves transcription quality for non-harmful portions
+- ⚠ 77.5% of harmful content still passes through (keyword-based limitations)
+
+**Layer 1+2+3 (Maximum Safety):**
+- ✓ 100% blocking of all harmful content (perfect recall)
+- ✓ Catches contextual hate speech and threats missed by keyword filters
+- ⚠ 100% false positive rate (blocks all benign content - requires prompt tuning)
+- ⚠ High latency (+4.4s per sample, unsuitable for real-time)
+
+**Recommended deployment strategies:**
+1. **Real-time applications**: Use Layer 1+2 only (+39ms latency, 0% false positives)
+2. **Batch content moderation**: Use Layer 1+2+3 with improved prompts to reduce false positives
+3. **Hybrid approach**: Layer 1+2 for real-time filtering + Layer 3 for high-risk samples flagged by confidence thresholds
+4. **Production-grade**: Layer 1+2 + dedicated toxicity classifier + human review for edge cases
 
 ### Technical Deep Dive: Why Initial Guardrail Failed (0% → 30% Fix)
 

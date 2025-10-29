@@ -11,6 +11,7 @@ from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, PreTrainedTok
 from transformers.generation.logits_process import LogitsProcessor, LogitsProcessorList
 
 from .base import ASRModel
+from .smartSafetyTranscriber import SmartSafetyTranscriber
 
 
 import logging
@@ -145,7 +146,7 @@ def _topk_decoder_trace(
 
 
 class MERaLiON(ASRModel):
-    def __init__(self, model_id: str, device, trust_remote_code: bool = True) -> None:
+    def __init__(self, model_id: str, device, trust_remote_code: bool = True, groq_api_key: Optional[str] = None) -> None:
         self.name = model_id
         self.device = device
         self.processor = AutoProcessor.from_pretrained(
@@ -171,6 +172,29 @@ class MERaLiON(ASRModel):
         self._guardrail_rules = _normalize_rules(None)
         self._capture_decoder_traces = False
         self._logits_processor: Optional[LogitsProcessorList] = None
+
+        # Initialize safety classifier (Layer 3 LLM-based guardrail)
+        self._safety_classifier_enabled = False
+        self._safety_classifier = None
+        if groq_api_key:
+            try:
+                self._safety_classifier = SmartSafetyTranscriber(groq_api_key)
+                logger.info("[SAFETY] SmartSafetyTranscriber initialized")
+            except Exception as e:
+                logger.warning(f"[SAFETY] Failed to initialize SmartSafetyTranscriber: {e}")
+
+    def enable_safety_classifier(self) -> None:
+        """Enable the Groq-based LLM safety classifier (Layer 3 guardrail)."""
+        if self._safety_classifier:
+            self._safety_classifier_enabled = True
+            logger.info("[SAFETY] Safety classifier enabled")
+        else:
+            logger.warning("[SAFETY] No safety classifier available. Provide Groq API key during initialization.")
+
+    def disable_safety_classifier(self) -> None:
+        """Disable the Groq-based LLM safety classifier (Layer 3 guardrail)."""
+        self._safety_classifier_enabled = False
+        logger.info("[SAFETY] Safety classifier disabled")
 
     def set_guardrail_rules(self, rules: Optional[Dict[str, Iterable[str]]]) -> None:
         self._guardrail_rules = _normalize_rules(rules)
@@ -273,18 +297,35 @@ class MERaLiON(ASRModel):
         transcript = decoded[0] if decoded else ""
         logger.info(f"[TRANSCRIBE] Raw transcript: {transcript}")
 
-        guardrail_rules = self._guardrail_rules if self._guardrail_enabled else None
-        guardrail_result = _clean_output(transcript, guardrail_rules)
+        # Apply Layer 3: LLM-based safety classifier if enabled
+        final_transcript = transcript
+        safety_processed = False
+
+        if self._safety_classifier_enabled and self._safety_classifier:
+            try:
+                final_transcript = self._safety_classifier.process_text(transcript)
+                safety_processed = True
+                logger.info(f"[SAFETY] Processed transcript: {final_transcript}")
+            except Exception as e:
+                logger.error(f"[SAFETY] Safety processing failed: {e}")
+                final_transcript = transcript  # Fallback to original
+
+        # Apply Layer 2: Regex-based guardrail rules (if not already handled by safety classifier)
+        guardrail_rules = self._guardrail_rules if self._guardrail_enabled and not safety_processed else None
+        guardrail_result = _clean_output(final_transcript, guardrail_rules)
         final_text = guardrail_result.cleaned.lower()
 
         logger.info(f"[TRANSCRIBE] Guardrail enabled: {self._guardrail_enabled}")
-        
+        logger.info(f"[TRANSCRIBE] Safety classifier enabled: {self._safety_classifier_enabled}")
+
         metadata = {
             "raw": transcript,
             "cleaned": guardrail_result.cleaned,
             "final_text": final_text,
             "rule_hits": guardrail_result.rule_hits,
             "guardrail_enabled": self._guardrail_enabled,
+            "safety_classifier_enabled": self._safety_classifier_enabled,
+            "safety_processed": safety_processed,
             "logits_masking_enabled": use_logits_masking and active_logits_processor is not None,
             "logits_processor_active": self._logits_processor is not None or active_logits_processor is not None,
         }
