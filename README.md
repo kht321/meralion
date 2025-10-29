@@ -20,7 +20,7 @@ Our evaluation covers four safety dimensions:
    distortions such as MRT background noise or reverberation from HDB flats?
 2. **Guardrails:** Can real-time content filtering block harmful keywords using
    logit masking and post-processing?
-3. **Toxicity:** How accurately do external classifiers detect toxic content in
+3. **Toxicity:** How accurately do models detect toxic content in
    ASR transcripts?
 4. **Fairness:** Are errors evenly distributed across speakers with different
    demographics, accents, or recording devices?
@@ -608,43 +608,43 @@ The models were evaluated using the following metrics:
 * F1 Toxic / F1 Non-Toxic: Harmonic mean of precision and recall for each class, reflecting how well models balance false positives and false negatives.
 
 | Dataset | Model | Input Type | Prompt | Total Blocks | Avg WER | Avg CER | Classification Accuracy | F1 Toxic | F1 Non-Toxic |
-|----------|--------|-------------|---------|---------------|----------|----------|---------------------------|-----------|---------------|
-| Test | MERaLION2-2-10B | Audio | Toxic | - | 0.1 | 0.0 | 83.6 | 58.3 | 89.8 |
-| Test | MERaLION2-2-10B | Audio | No Toxic | 15 | 0.1 | 0.0 | 83.6 | 58.3 | 89.8 |
-| Test | MERaLION2-2-10B | Synthetic | Toxic | - | 0.0 | 0.0 | 84.2 | 64.6 | 89.9 |
-| Test | MERaLION2-2-10B | Synthetic | No Toxic | 23 | 0.0 | 0.0 | 84.2 | 64.6 | 89.9 |
-| Test | MERaLION2-2-10B | Text | - | - | - | - | 84.0 | 61.5 | 89.8 |
-| Test | MERaLION2-2-3B | Audio | Toxic | - | 0.1 | 0.0 | 25.0 | 40.0 | 0.0 |
-| Test | MERaLION2-2-3B | Audio | No Toxic | 0 | 0.1 | 0.0 | 25.0 | 40.0 | 0.0 |
-| Test | MERaLION2-2-3B | Synthetic | Toxic | - | 0.0 | 0.0 | 25.2 | 40.1 | 0.0 |
-| Test | MERaLION2-2-3B | Synthetic | No Toxic | 0 | 0.0 | 0.0 | 25.2 | 40.1 | 0.0 |
-| Test | MERaLION2-2-3B | Text | - | - | - | - | 80.8 | 62.2 | 87.1 |
-| Test | Whisper-Small | Audio | - | - | 0.1 | 0.0 | - | - | - |
-| Test | Whisper-Small | Synthetic | - | - | 0.1 | 0.0 | - | - | - |
-| Trigger Test | MERaLION2-2-10B | Audio | Toxic | - | 0.1 | 0.0 | 77.7 | 0.0 | 87.5 |
-| Trigger Test | MERaLION2-2-10B | Audio | No Toxic | 5 | 0.1 | 0.0 | 77.7 | 0.0 | 87.5 |
-| Trigger Test | MERaLION2-2-10B | Synthetic | Toxic | - | 0.0 | 0.0 | 59.4 | 0.0 | 74.5 |
-| Trigger Test | MERaLION2-2-10B | Synthetic | No Toxic | 13 | 0.0 | 0.0 | 59.4 | 0.0 | 74.5 |
-| Trigger Test | MERaLION2-2-10B | Text | - | - | - | - | 57.7 | 0.0 | 73.2 |
-| Trigger Test | MERaLION2-2-3B | Audio | Toxic | - | 0.1 | 0.0 | 0.0 | 0.0 | 0.0 |
-| Trigger Test | MERaLION2-2-3B | Audio | No Toxic | 0 | 0.1 | 0.0 | 0.0 | 0.0 | 0.0 |
-| Trigger Test | MERaLION2-2-3B | Synthetic | Toxic | - | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
-| Trigger Test | MERaLION2-2-3B | Synthetic | No Toxic | 0 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 |
-| Trigger Test | MERaLION2-2-3B | Text | - | - | - | - | 79.2 | 0.0 | 88.4 |
-| Trigger Test | Whisper-Small | Audio | - | - | 0.1 | 0.0 | - | - | - |
-| Trigger Test | Whisper-Small | Synthetic | - | - | 0.0 | 0.0 | - | - | - |
-| Self-curated | MERaLION2-2-10B | Audio | Toxic | - | 0.3 | 0.3 | 90.0 | 90.9 | 88.9 |
-| Self-curated | MERaLION2-2-10B | Audio | No Toxic | 4 | 0.3 | 0.3 | 90.0 | 90.9 | 88.9 |
-| Self-curated | MERaLION2-2-10B | Synthetic | Toxic | - | 0.2 | 0.2 | 80.0 | 80.0 | 80.0 |
-| Self-curated | MERaLION2-2-10B | Synthetic | No Toxic | 3 | 0.1 | 0.1 | 80.0 | 80.0 | 80.0 |
-| Self-curated | MERaLION2-2-10B | Text | - | - | - | - | 80.0 | 83.3 | 75.0 |
-| Self-curated | MERaLION2-2-3B | Audio | Toxic | - | 0.3 | 0.3 | 50.0 | 66.7 | 0.0 |
-| Self-curated | MERaLION2-2-3B | Audio | No Toxic | 0 | 0.4 | 0.4 | 50.0 | 66.7 | 0.0 |
-| Self-curated | MERaLION2-2-3B | Synthetic | Toxic | - | 0.1 | 0.1 | 50.0 | 66.7 | 0.0 |
-| Self-curated | MERaLION2-2-3B | Synthetic | No Toxic | 1 | 0.2 | 0.1 | 50.0 | 66.7 | 0.0 |
-| Self-curated | MERaLION2-2-3B | Text | - | - | - | - | 70.0 | 76.9 | 57.1 |
-| Self-curated | Whisper-Small | Audio | - | - | 0.8 | 0.8 | - | - | - |
-| Self-curated | Whisper-Small | Synthetic | - | - | 0.5 | 0.5 | - | - | - |
+|:-------:|:-----:|:----------:|:------:|:------------:|:--------:|:--------:|:---------------------:|:--------:|:------------:|
+| Test | MERaLION-2-10B | Audio | Toxic | - | 6.6% | 3.2% | 83.6% | 58.3% | 89.8% |
+| Test | MERaLION-2-10B | Audio | No Toxic | 15 | 5.6% | 2.9% | 83.6% | 58.3% | 89.8% |
+| Test | MERaLION-2-10B | Synthetic | Toxic | - | 2.7% | 0.8% | 84.2% | 64.6% | 89.9% |
+| Test | MERaLION-2-10B | Synthetic | No Toxic | 23 | 3.2% | 1.9% | 84.2% | 64.6% | 89.9% |
+| Test | MERaLION-2-10B | Text | - | - | - | - | 84.0% | 61.5% | 89.8% |
+| Test | MERaLION-2-3B | Audio | Toxic | - | 6.4% | 2.6% | 25.0% | 40.0% | 0.2% |
+| Test | MERaLION-2-3B | Audio | No Toxic | 0 | 6.6% | 2.7% | 25.0% | 40.0% | 0.2% |
+| Test | MERaLION-2-3B | Synthetic | Toxic | - | 3.0% | 0.9% | 25.2% | 40.1% | 0.6% |
+| Test | MERaLION-2-3B | Synthetic | No Toxic | 0 | 3.0% | 0.9% | 25.2% | 40.1% | 0.6% |
+| Test | MERaLION-2-3B | Text | - | - | - | - | 80.8% | 62.2% | 87.1% |
+| Test | Whisper-Small | Audio | - | - | 9.7% | 4.4% | - | - | - |
+| Test | Whisper-Small | Synthetic | - | - | 5.0% | 2.1% | - | - | - |
+| Trigger Test | MERaLION-2-10B | Audio | Toxic | - | 9.2% | 3.5% | 77.7% | 0.0% | 87.5% |
+| Trigger Test | MERaLION-2-10B | Audio | No Toxic | 5 | 7.6% | 3.1% | 77.7% | 0.0% | 87.5% |
+| Trigger Test | MERaLION-2-10B | Synthetic | Toxic | - | 3.1% | 0.6% | 59.4% | 0.0% | 74.5% |
+| Trigger Test | MERaLION-2-10B | Synthetic | No Toxic | 13 | 3.3% | 2.0% | 59.4% | 0.0% | 74.5% |
+| Trigger Test | MERaLION-2-10B | Text | - | - | - | - | 57.7% | 0.0% | 73.2% |
+| Trigger Test | MERaLION-2-3B | Audio | Toxic | - | 9.3% | 3.3% | 0.0% | 0.0% | 0.0% |
+| Trigger Test | MERaLION-2-3B | Audio | No Toxic | 0 | 9.1% | 3.3% | 0.0% | 0.0% | 0.0% |
+| Trigger Test | MERaLION-2-3B | Synthetic | Toxic | - | 3.9% | 0.7% | 0.0% | 0.0% | 0.0% |
+| Trigger Test | MERaLION-2-3B | Synthetic | No Toxic | 0 | 3.6% | 0.6% | 0.0% | 0.0% | 0.0% |
+| Trigger Test | MERaLION-2-3B | Text | - | - | - | - | 79.2% | 0.0% | 88.4% |
+| Trigger Test | Whisper-Small | Audio | - | - | 13.0% | 4.8% | - | - | - |
+| Trigger Test | Whisper-Small | Synthetic | - | - | 4.7% | 0.7% | - | - | - |
+| Self-curated | MERaLION-2-10B | Audio | Toxic | - | 32.1% | 32.0% | 90.0% | 90.9% | 88.9% |
+| Self-curated | MERaLION-2-10B | Audio | No Toxic | 4 | 33.1% | 32.4% | 90.0% | 90.9% | 88.9% |
+| Self-curated | MERaLION-2-10B | Synthetic | Toxic | - | 18.8% | 16.9% | 80.0% | 80.0% | 80.0% |
+| Self-curated | MERaLION-2-10B | Synthetic | No Toxic | 3 | 13.3% | 10.6% | 80.0% | 80.0% | 80.0% |
+| Self-curated | MERaLION-2-10B | Text | - | - | - | - | 80.0% | 83.3% | 75.0% |
+| Self-curated | MERaLION-2-3B | Audio | Toxic | - | 33.1% | 32.8% | 50.0% | 66.7% | 0.0% |
+| Self-curated | MERaLION-2-3B | Audio | No Toxic | 0 | 38.0% | 36.6% | 50.0% | 66.7% | 0.0% |
+| Self-curated | MERaLION-2-3B | Synthetic | Toxic | - | 15.0% | 13.1% | 50.0% | 66.7% | 0.0% |
+| Self-curated | MERaLION-2-3B | Synthetic | No Toxic | 1 | 16.4% | 14.7% | 50.0% | 66.7% | 0.0% |
+| Self-curated | MERaLION-2-3B | Text | - | - | - | - | 70.0% | 76.9% | 57.1% |
+| Self-curated | Whisper-Small | Audio | - | - | 80.1% | 83.0% | - | - | - |
+| Self-curated | Whisper-Small | Synthetic | - | - | 54.8% | 50.7% | - | - | - |
 
 ### Toxicity Highlights and Visualizations
 
