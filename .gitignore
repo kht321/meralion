@@ -216,8 +216,13 @@ data/NSC/
 # Experiment artefacts (comment out if you want to track results)
 # results/
 
-# Internal planning documents
-docs/*.md
+# Internal planning documents and reports
+docs/
 !docs/guardrails-testing-plan.md
 !docs/self-curated-evaluation-plan.md
+
+# Report generation scripts
+scripts/final_report.py
+scripts/optimize_report.py
+scripts/populate_report.py
 

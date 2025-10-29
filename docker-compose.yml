@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  meralion-eval:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: meralion-asr-eval:latest
+    container_name: meralion-eval
+
+    # Mount the project directory for development
+    volumes:
+      - .:/app
+      - model-cache:/app/.cache/torch
+      - hf-cache:/app/.cache/huggingface
+
+    # Enable GPU access (requires nvidia-docker)
+    # Comment out if not using GPU
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    # Environment variables
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - PYTHONUNBUFFERED=1
+
+    # Keep container running
+    stdin_open: true
+    tty: true
+
+    # Override default command
+    command: /bin/bash
+
+  # Alternative CPU-only service
+  meralion-eval-cpu:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: meralion-asr-eval:latest
+    container_name: meralion-eval-cpu
+
+    volumes:
+      - .:/app
+      - model-cache:/app/.cache/torch
+      - hf-cache:/app/.cache/huggingface
+
+    environment:
+      - PYTHONUNBUFFERED=1
+
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+    profiles:
+      - cpu
+
+# Named volumes for caching models
+volumes:
+  model-cache:
+  hf-cache:
