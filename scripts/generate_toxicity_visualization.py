@@ -32,7 +32,7 @@ def plot_visualizations(df_summary, output_dir):
             if row == 0:
                 ax.set_title(f"{dataset}")
             ax.set_xlabel(" ")
-            ax.set_ylabel(label)
+            ax.set_ylabel(label + " (%)")
             if row == 1:
                 handles, labels_ = ax.get_legend_handles_labels()
     handles, labels_ = axes[1,0].get_legend_handles_labels()
@@ -40,6 +40,7 @@ def plot_visualizations(df_summary, output_dir):
                ncol=len(labels_), bbox_to_anchor=(0.5, 0.05))
     for row_axes in axes:
         for ax in row_axes:
+            ax.set_ylim(0, 100)
             if ax.get_legend() is not None:
                 ax.get_legend().remove()
     plt.suptitle("Transcription WER and CER", y=1.05)
@@ -57,8 +58,8 @@ def plot_visualizations(df_summary, output_dir):
         sns.barplot(data=subset, x="Model", y="Classification Accuracy", hue="Input Type", ax=ax)
         ax.set_title(f"{dataset}")
         ax.set_xlabel(" ")
-        ax.set_ylabel("Accuracy")
-        ax.set_ylim(0, 1)
+        ax.set_ylabel("Accuracy (%)")
+        ax.set_ylim(0, 100)
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=len(labels), bbox_to_anchor=(0.5, 0.01))
     for ax in axes:
@@ -79,10 +80,10 @@ def plot_visualizations(df_summary, output_dir):
             ax = axes[row, col]
             subset = df_f1[df_f1["Dataset"] == dataset]
             sns.barplot(data=subset, x="Model", y=f1_col, hue="Input Type", ax=ax)
-            ax.set_ylim(0, 1)
+            ax.set_ylim(0, 100)
             ax.set_title(f"{dataset} – {f1_col[3:]}")
             ax.set_xlabel(" ")
-            ax.set_ylabel("F1")
+            ax.set_ylabel(f1_col + " (%)")
 
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=len(labels), bbox_to_anchor=(0.5, 0.05))
@@ -137,6 +138,12 @@ def main():
                "Classification Accuracy": float, "F1 Toxic": float},
         na_values=["-"]
         )
+    
+    # Convert metrics (except block count) from decimal to percentage
+    percent_cols = ["Average WER", "Average CER", "Classification Accuracy", "F1 Toxic", "F1 Non-Toxic"]
+    for col in percent_cols:
+        if col in df_summary.columns:
+            df_summary[col] = df_summary[col] * 100
 
     print("Generating visualizations")
     plot_visualizations(df_summary, args.output_dir)
