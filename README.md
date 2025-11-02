@@ -365,17 +365,23 @@ Full per-seed metrics and bootstrap confidence intervals are stored in
 
 ### Visualizations (NSC Part 1)
 
+![Robustness Summary](results/robustness/charts/robustness_summary_presentation.png)
+*Figure 1: Key robustness metrics comparison. Left: MERaLiON-2-3B achieves best clean accuracy (13.1% WER, 4.8pp advantage over Whisper). Center: Both MERaLiON models show excellent average robustness (<1pp degradation), while Whisper degrades significantly (+9.6pp). Right: Whisper exhibits catastrophic worst-case failure (+77.6pp from reverb), while MERaLiON models remain robust (+5-6pp). Color-coded for performance: green (excellent), orange (moderate), red (poor).*
+
+![Clean WER Comparison](results/robustness/charts/clean_wer_comparison.png)
+*Figure 2: Clean WER comparison with performance tier bands. Both MERaLiON models achieve excellent performance (<15% WER), while Whisper-small falls in the good range (17.9%). Background shading indicates performance tiers.*
+
+![Robustness Tradeoff](results/robustness/charts/robustness_tradeoff.png)
+*Figure 3: Average vs worst-case robustness trade-off. MERaLiON models cluster in the excellent robustness zone (lower-left), while Whisper-small falls into the catastrophic failure zone due to reverb sensitivity. Lower-left position is better.*
+
 ![Corruption Heatmap](results/robustness/charts/corruption_heatmap.png)
-*Figure 1: Worst-case ΔWER by corruption type and model. Shows noise as the primary failure mode for all models, with Whisper-small exhibiting catastrophic reverb sensitivity.*
+*Figure 4: Worst-case ΔWER by corruption type and model. Shows noise as the primary failure mode for all models, with Whisper-small exhibiting catastrophic reverb sensitivity.*
 
 ![Accuracy vs Robustness](results/robustness/charts/accuracy_vs_robustness.png)
-*Figure 2: Trade-off between clean accuracy and robustness. MERaLiON variants achieve best clean WER; Whisper-small shows worst robustness. MERaLiON-2-3B demonstrates optimal balance.*
+*Figure 5: Trade-off between clean accuracy and robustness. MERaLiON variants achieve best clean WER; Whisper-small shows worst robustness. MERaLiON-2-3B demonstrates optimal balance.*
 
 ![Noise Severity](results/robustness/charts/noise_severity.png)
-*Figure 3: Noise robustness across SNR levels. All models degrade gracefully with decreasing SNR, with MERaLiON-2-3B showing superior noise resistance.*
-
-![Model Comparison](results/robustness/charts/model_comparison.png)
-*Figure 4: Key metrics comparison. MERaLiON-2-3B balances clean accuracy, average robustness, and worst-case robustness most effectively.*
+*Figure 6: Noise robustness across SNR levels. All models degrade gracefully with decreasing SNR, with MERaLiON-2-3B showing superior noise resistance.*
 
 ---
 
@@ -413,6 +419,19 @@ Evaluated all 3 models on 20 conversational audio files (test1–test20.mp3) sou
 
 Full per-seed metrics are stored in `results/self_curated/per_seed.csv` and `results/self_curated/summary.csv`.
 
+### Visualizations (Self-Curated Conversational Dataset)
+
+![Clean WER Comparison](results/self_curated/charts/clean_wer_comparison.png)
+*Figure 5: Clean WER comparison across models on conversational Singlish. MERaLiON-2-3B achieves 38.8% WER, dramatically outperforming the 10B variant by 27.7pp.*
+
+![Clean WER vs CER](results/self_curated/charts/clean_wer_vs_cer.png)
+*Figure 6: Clean WER vs CER scatter plot showing performance across both word-level and character-level accuracy. MERaLiON-2-3B maintains best position (lower-left = better).*
+
+![Robustness Summary](results/self_curated/charts/robustness_summary_presentation.png)
+*Figure 7: Key robustness metrics comparison. Left: MERaLiON-2-3B achieves best clean accuracy (38.8% WER, 27.7pp better than 10B). Center: MERaLiON-2-10B shows surprising improvement under corruption (Avg ΔWER -8.5pp). Right: All models show vulnerability to extreme conditions, with MERaLiON-2-3B most susceptible to noise (Worst ΔWER +28.2pp). Color-coded for performance: green (good), orange (moderate), red (poor).*
+
+![Domain Shift Comparison](results/self_curated/charts/domain_shift_comparison.png)
+*Figure 8: Domain shift impact from NSC read speech to conversational Singlish. All models degrade significantly, with MERaLiON-2-10B suffering the largest shift (+52.9pp). Red arrows indicate WER increase.*
 
 ---
 
